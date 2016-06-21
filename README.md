@@ -1,5 +1,7 @@
 # gofail
 
+[![Build Status](https://travis-ci.org/coreos/gofail.svg?branch=master)](https://travis-ci.org/coreos/gofail)
+
 An implementation of [failpoints][failpoint] for golang.
 
 [failpoint]: http://www.freebsd.org/cgi/man.cgi?query=fail
@@ -57,7 +59,7 @@ From the command line, trigger the failpoint to set SomeFuncString to `hello`,
 GOFAIL_FAILPOINTS='my/package/path/SomeFuncString=return("hello")' ./cmd
 ```
 
-Multiple failpoints are set by ';' using for a delimiter,
+Multiple failpoints are set by using ';' for a delimiter,
 
 ```sh
 GOFAIL_FAILPOINTS='failpoint1=return("hello");failpoint2=sleep(10)' ./cmd
