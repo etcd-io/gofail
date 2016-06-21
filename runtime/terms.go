@@ -240,21 +240,39 @@ func parseAct(desc string) (string, actFunc) {
 	return "", nil
 }
 
-// <val> :: <int> | <string>
+// <val> :: <int> | <string> | <bool> | <nothing>
 func parseVal(desc string) (string, interface{}) {
-	if len(desc) == 0 || desc[0] != '(' {
+	// return => struct{}
+	if len(desc) == 0 {
+		return "", struct{}{}
+	}
+	// malformed
+	if len(desc) == 1 || desc[0] != '(' {
 		return "", nil
 	}
+	// return() => struct{}
+	if desc[1] == ')' {
+		return "()", struct{}{}
+	}
+	// return("s") => string
 	s := ""
 	n, err := fmt.Sscanf(desc[1:], "%q", &s)
 	if n == 1 && err == nil {
 		return desc[:len(s)+4], s
 	}
+	// return(1) => int
 	v := 0
 	n, err = fmt.Sscanf(desc[1:], "%d", &v)
 	if n == 1 && err == nil {
 		return desc[:len(fmt.Sprintf("%d", v))+2], v
 	}
+	// return(true) => bool
+	b := false
+	n, err = fmt.Sscanf(desc[1:], "%t", &b)
+	if n == 1 && err == nil {
+		return desc[:len(fmt.Sprintf("%t", b))+2], b
+	}
+	// unknown type; malformed input?
 	return "", nil
 }
 

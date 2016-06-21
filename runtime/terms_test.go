@@ -15,6 +15,7 @@
 package runtime
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -44,6 +45,32 @@ func TestTermsString(t *testing.T) {
 			if v.(string) != w {
 				t.Fatalf("got %q, expected %q", v, w)
 			}
+		}
+	}
+}
+
+func TestTermsTypes(t *testing.T) {
+	tests := []struct {
+		desc  string
+		weval interface{}
+	}{
+		{`off`, nil},
+		{`return("abc")`, "abc"},
+		{`return(true)`, true},
+		{`return(1)`, 1},
+		{`return()`, struct{}{}},
+	}
+	for _, tt := range tests {
+		ter, err := newTerms("test", tt.desc)
+		if err != nil {
+			t.Fatal(err)
+		}
+		v, _ := ter.eval()
+		if v == nil && tt.weval == nil {
+			continue
+		}
+		if !reflect.DeepEqual(v, tt.weval) {
+			t.Fatalf("got %v, expected %v", v, tt.weval)
 		}
 	}
 }
