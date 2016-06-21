@@ -68,7 +68,7 @@ func (fp *Failpoint) flushSingle(dst io.Writer) error {
 	if _, err := io.WriteString(dst, fp.hdr()); err != nil {
 		return err
 	}
-	_, err := io.WriteString(dst, fp.footer() + "\n")
+	_, err := io.WriteString(dst, fp.footer()+"\n")
 	return err
 }
 
@@ -83,7 +83,7 @@ func (fp *Failpoint) flushMulti(dst io.Writer) error {
 		}
 	}
 	code := fp.code[len(fp.code)-1]
-	_, err := io.WriteString(dst, code[:len(code)-1] + fp.footer() + "\n")
+	_, err := io.WriteString(dst, code[:len(code)-1]+fp.footer()+"\n")
 	return err
 }
 
