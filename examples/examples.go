@@ -19,3 +19,8 @@ func ExampleFunc() string {
 	// return ExampleString
 	return "example"
 }
+
+func ExampleOneLineFunc() string {
+	// gofail: var ExampleOneLine struct{}
+	return "abc"
+}
