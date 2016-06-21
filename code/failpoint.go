@@ -52,10 +52,10 @@ func (fp *Failpoint) flush(dst io.Writer) error {
 	return fp.flushMulti(dst)
 }
 
-func (fp *Failpoint) hdr() string {
+func (fp *Failpoint) hdr(varname string) string {
 	hdr := fp.ws + "if v" + fp.name + ", __fpErr := " + fp.Runtime() + ".Acquire(); __fpErr == nil { "
 	hdr = hdr + "defer " + fp.Runtime() + ".Release(); "
-	return hdr + fp.name + ", __fpTypeOK := v" + fp.name +
+	return hdr + varname + ", __fpTypeOK := v" + fp.name +
 		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
 }
 
@@ -65,7 +65,7 @@ func (fp *Failpoint) footer() string {
 }
 
 func (fp *Failpoint) flushSingle(dst io.Writer) error {
-	if _, err := io.WriteString(dst, fp.hdr()); err != nil {
+	if _, err := io.WriteString(dst, fp.hdr("_")); err != nil {
 		return err
 	}
 	_, err := io.WriteString(dst, fp.footer()+"\n")
@@ -73,7 +73,7 @@ func (fp *Failpoint) flushSingle(dst io.Writer) error {
 }
 
 func (fp *Failpoint) flushMulti(dst io.Writer) error {
-	hdr := fp.hdr() + "\n"
+	hdr := fp.hdr(fp.name) + "\n"
 	if _, err := io.WriteString(dst, hdr); err != nil {
 		return err
 	}
