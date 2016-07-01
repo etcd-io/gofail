@@ -54,21 +54,29 @@ func init() {
 
 // Enable sets a failpoint to a given failpoint description.
 func Enable(failpath, inTerms string) error {
+	unlock, err := enableAndLock(failpath, inTerms)
+	if unlock != nil {
+		unlock()
+	}
+	return err
+}
+
+// enableAndLock enables a failpoint and returns a function to unlock it
+func enableAndLock(failpath, inTerms string) (func(), error) {
 	t, err := newTerms(failpath, inTerms)
 	if err != nil {
 		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", failpath, inTerms, err)
-		return err
+		return nil, err
 	}
 	failpointsMu.RLock()
 	fp := failpoints[failpath]
 	failpointsMu.RUnlock()
 	if fp == nil {
-		return ErrNoExist
+		return nil, ErrNoExist
 	}
 	fp.mu.Lock()
 	fp.t = t
-	fp.mu.Unlock()
-	return nil
+	return func() { fp.mu.Unlock() }, nil
 }
 
 // Disable stops a failpoint from firing.
