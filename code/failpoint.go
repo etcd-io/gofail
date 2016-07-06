@@ -55,6 +55,10 @@ func (fp *Failpoint) flush(dst io.Writer) error {
 func (fp *Failpoint) hdr(varname string) string {
 	hdr := fp.ws + "if v" + fp.name + ", __fpErr := " + fp.Runtime() + ".Acquire(); __fpErr == nil { "
 	hdr = hdr + "defer " + fp.Runtime() + ".Release(); "
+	if fp.varType == "struct{}" {
+		// unused
+		varname = "_"
+	}
 	return hdr + varname + ", __fpTypeOK := v" + fp.name +
 		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
 }
@@ -83,7 +87,7 @@ func (fp *Failpoint) flushMulti(dst io.Writer) error {
 		}
 	}
 	code := fp.code[len(fp.code)-1]
-	_, err := io.WriteString(dst, code[:len(code)-1]+fp.footer()+"\n")
+	_, err := io.WriteString(dst, code+fp.footer()+"\n")
 	return err
 }
 
