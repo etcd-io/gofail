@@ -55,6 +55,10 @@ func (fp *Failpoint) flush(dst io.Writer) error {
 func (fp *Failpoint) hdr(varname string) string {
 	hdr := fp.ws + "if v" + fp.name + ", __fpErr := " + fp.Runtime() + ".Acquire(); __fpErr == nil { "
 	hdr = hdr + "defer " + fp.Runtime() + ".Release(); "
+	if fp.varType == "struct{}" {
+		// unused
+		varname = "_"
+	}
 	return hdr + varname + ", __fpTypeOK := v" + fp.name +
 		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
 }
