@@ -41,6 +41,9 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 		l, rerr := src.ReadString('\n')
 		if curfp != nil {
 			if strings.HasPrefix(strings.TrimSpace(l), "//") {
+				if len(l) > 0 && l[len(l)-1] == '\n' {
+					l = l[:len(l)-1]
+				}
 				curfp.code = append(curfp.code, strings.Replace(l, "//", "\t", 1))
 				continue
 			} else {

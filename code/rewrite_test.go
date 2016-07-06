@@ -33,6 +33,7 @@ var examples = []struct {
 	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n\n\t// gofail: var Test2 int\n\t// fmt.Println(Test2)\n}\n", 2},
 	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n}\n", 1},
 	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n}\n", 1},
+	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n\t// fmt.Println(`bye`)\n}\n", 1},
 }
 
 func TestToFailpoint(t *testing.T) {
