@@ -32,15 +32,22 @@ func NewFailpoint(pkg, name string) *Failpoint {
 
 // Acquire gets evalutes the failpoint terms; if the failpoint
 // is active, it will return a value. Otherwise, returns a non-nil error.
-func (fp *Failpoint) Acquire() (interface{}, error) {
+func (fp *Failpoint) Acquire() (v interface{}, err error) {
 	fp.mu.RLock()
 	if fp.t == nil {
 		fp.mu.RUnlock()
 		return nil, ErrDisabled
 	}
-	v, err := fp.t.eval()
-	if v == nil {
-		err = ErrDisabled
+	for i := 0; i < len(fp.t.chain); i++ {
+		v, err = fp.t.eval()
+		if v == nil {
+			err = ErrDisabled
+		}
+		// do next term in the chain
+		tps := make([]*term, len(fp.t.chain))
+		copy(tps, fp.t.chain[1:])
+		tps[len(tps)-1] = fp.t.chain[0]
+		fp.t.chain = tps
 	}
 	if err != nil {
 		fp.mu.RUnlock()
