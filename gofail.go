@@ -160,6 +160,7 @@ func main() {
 		xfrm = code.ToComments
 	default:
 		fmt.Println("expected enable or disable")
+		os.Exit(1)
 	}
 
 	files := paths2files(os.Args[2:])
