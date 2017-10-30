@@ -48,7 +48,13 @@ func xfrmFile(xfrm xfrmFunc, path string) ([]*code.Failpoint, error) {
 		return nil, xerr
 	}
 
-	return fps, os.Rename(dst.Name(), path)
+	rerr := os.Rename(dst.Name(), path)
+	if rerr != nil {
+		os.Remove(dst.Name())
+		return nil, rerr
+	}
+
+	return fps, nil
 }
 
 func dir2files(dir, ext string) (ret []string, err error) {
