@@ -19,6 +19,7 @@ import (
 	"io"
 	"strings"
 	"unicode"
+	"os/exec"
 )
 
 // ToFailpoints turns all gofail comments into failpoint code. Returns a list of
@@ -115,7 +116,13 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 		err = nil
 	}
 	dst.Flush()
+	err = removeDependencies()
 	return
+}
+
+func removeDependencies() error {
+	cmd := exec.Command("goimports", "-w", "$(pwd)")
+	return cmd.Run()
 }
 
 func numBraces(l string) (opening int, closing int) {
