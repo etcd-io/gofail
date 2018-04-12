@@ -17,9 +17,9 @@ package code
 import (
 	"bufio"
 	"io"
+	"os/exec"
 	"strings"
 	"unicode"
-	"os/exec"
 )
 
 // ToFailpoints turns all gofail comments into failpoint code. Returns a list of
