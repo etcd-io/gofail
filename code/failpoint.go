@@ -60,7 +60,7 @@ func (fp *Failpoint) hdr(varname string) string {
 		varname = "_"
 	}
 	return hdr + varname + ", __fpTypeOK := v" + fp.name +
-		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
+		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + " } else { continue __fp_" + fp.name + " }"
 }
 
 func (fp *Failpoint) footer() string {
@@ -69,6 +69,10 @@ func (fp *Failpoint) footer() string {
 }
 
 func (fp *Failpoint) flushSingle(dst io.Writer) error {
+	if fp.varType == "continue" {
+		_, cerr := io.WriteString(dst, "__fp_"+fp.name+":\n")
+		return cerr
+	}
 	if _, err := io.WriteString(dst, fp.hdr("_")); err != nil {
 		return err
 	}
