@@ -108,6 +108,9 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
 			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
+			if strings.Contains(lTrim, n+"."+"Eval();") {
+				t += " eval"
+			}
 			dst.WriteString(ws + "// gofail: var " + n + " " + t + "\n")
 			if !strings.Contains(l, "; __badType") {
 				// not single liner
