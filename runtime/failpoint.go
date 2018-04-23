@@ -30,6 +30,21 @@ func NewFailpoint(pkg, name string) *Failpoint {
 	return fp
 }
 
+// Eval merely evaluates the failpoint terms without
+// acquiring the read lock.
+func (fp *Failpoint) Eval() (interface{}, error) {
+	fp.mu.RLock()
+	defer fp.mu.RUnlock()
+	if fp.t == nil {
+		return nil, ErrDisabled
+	}
+	v, err := fp.t.eval()
+	if v == nil {
+		err = ErrDisabled
+	}
+	return v, err
+}
+
 // Acquire gets evalutes the failpoint terms; if the failpoint
 // is active, it will return a value. Otherwise, returns a non-nil error.
 func (fp *Failpoint) Acquire() (interface{}, error) {
