@@ -48,7 +48,9 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 				continue
 			} else {
 				curfp.flush(dst)
-				fps = append(fps, curfp)
+				if curfp.varType != "continue" {
+					fps = append(fps, curfp)
+				}
 				curfp = nil
 			}
 		} else {
@@ -81,6 +83,14 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 		err = rerr
 		lTrim := strings.TrimSpace(l)
 
+		isContinue := strings.HasPrefix(lTrim, "__fp_") && lTrim[len(lTrim)-1] == ':'
+		if isContinue {
+			n := strings.Split(strings.Split(lTrim, "__fp_")[1], ":")[0]
+			dst.WriteString("\t// gofail: var " + n + " continue" + "\n")
+			fps = append(fps, &Failpoint{name: n, varType: "continue"})
+			continue
+		}
+
 		if unmatchedBraces > 0 {
 			opening, closing := numBraces(l)
 			unmatchedBraces += opening - closing
@@ -98,6 +108,9 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
 			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
+			if strings.Contains(lTrim, n+"."+"Eval();") {
+				t += " eval"
+			}
 			dst.WriteString(ws + "// gofail: var " + n + " " + t + "\n")
 			if !strings.Contains(l, "; __badType") {
 				// not single liner

@@ -27,6 +27,10 @@ type Failpoint struct {
 
 	// whitespace for padding
 	ws string
+
+	// if true, do not acquire read lock on failpoints
+	// useful for "continue"
+	eval bool
 }
 
 // newFailpoint makes a new failpoint based on the a line containing a
@@ -38,10 +42,11 @@ func newFailpoint(l string) (*Failpoint, error) {
 	}
 	cmd := strings.SplitAfter(l, "// gofail:")[1]
 	fields := strings.Fields(cmd)
-	if len(fields) != 3 || fields[0] != "var" {
+	if len(fields) < 3 || fields[0] != "var" {
 		return nil, fmt.Errorf("failpoint: malformed comment header %q", l)
 	}
-	return &Failpoint{name: fields[1], varType: fields[2], ws: strings.Split(l, "//")[0]}, nil
+	eval := len(fields) == 4 && fields[3] == "eval"
+	return &Failpoint{name: fields[1], varType: fields[2], ws: strings.Split(l, "//")[0], eval: eval}, nil
 }
 
 // flush writes the failpoint code to a buffer
@@ -53,14 +58,19 @@ func (fp *Failpoint) flush(dst io.Writer) error {
 }
 
 func (fp *Failpoint) hdr(varname string) string {
-	hdr := fp.ws + "if v" + fp.name + ", __fpErr := " + fp.Runtime() + ".Acquire(); __fpErr == nil { "
-	hdr = hdr + "defer " + fp.Runtime() + ".Release(); "
+	hdr := fp.ws + "if v" + fp.name + ", __fpErr := "
+	if !fp.eval {
+		hdr += fp.Runtime() + ".Acquire(); __fpErr == nil { "
+		hdr += "defer " + fp.Runtime() + ".Release(); "
+	} else {
+		hdr += fp.Runtime() + ".Eval(); __fpErr == nil { "
+	}
 	if fp.varType == "struct{}" {
 		// unused
 		varname = "_"
 	}
 	return hdr + varname + ", __fpTypeOK := v" + fp.name +
-		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
+		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + " } else { continue __fp_" + fp.name + " }"
 }
 
 func (fp *Failpoint) footer() string {
@@ -69,6 +79,10 @@ func (fp *Failpoint) footer() string {
 }
 
 func (fp *Failpoint) flushSingle(dst io.Writer) error {
+	if fp.varType == "continue" {
+		_, cerr := io.WriteString(dst, "__fp_"+fp.name+":\n")
+		return cerr
+	}
 	if _, err := io.WriteString(dst, fp.hdr("_")); err != nil {
 		return err
 	}
