@@ -34,6 +34,18 @@ var examples = []struct {
 	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n}\n", 1},
 	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n}\n", 1},
 	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n\t// fmt.Println(`bye`)\n}\n", 1},
+	{`
+func f() {
+	// gofail: labelTest:
+	for {
+		if g() {
+			// gofail: var testLabel struct{}
+			// continue labelTest
+			return
+		}
+	}
+}
+`, 1},
 }
 
 func TestToFailpoint(t *testing.T) {
