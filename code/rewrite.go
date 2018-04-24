@@ -51,13 +51,14 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 				fps = append(fps, curfp)
 				curfp = nil
 			}
-		} else {
+		} else if label := gofailLabel(l); label != "" {
+			// expose gofail label
+			l = label
+		} else if curfp, err = newFailpoint(l); err != nil {
+			return
+		} else if curfp != nil {
 			// found a new failpoint
-			if curfp, err = newFailpoint(l); err != nil {
-				return
-			} else if curfp != nil {
-				continue
-			}
+			continue
 		}
 		if _, err = dst.WriteString(l); err != nil {
 			return
@@ -107,6 +108,10 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			continue
 		}
 
+		if isLabel := strings.Contains(l, "\t/* gofail-label */"); isLabel {
+			l = strings.Replace(l, "/* gofail-label */", "// gofail:", 1)
+		}
+
 		if _, werr := dst.WriteString(l); werr != nil {
 			return fps, werr
 		}
@@ -116,6 +121,17 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 	}
 	dst.Flush()
 	return
+}
+
+func gofailLabel(l string) string {
+	if !strings.HasPrefix(strings.TrimSpace(l), "// gofail:") {
+		return ""
+	}
+	label := strings.SplitAfter(l, "// gofail:")[1]
+	if len(label) == 0 || !strings.Contains(label, ":") {
+		return ""
+	}
+	return strings.Replace(l, "// gofail:", "/* gofail-label */", 1)
 }
 
 func numBraces(l string) (opening int, closing int) {
