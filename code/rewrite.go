@@ -16,9 +16,20 @@ package code
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strings"
 	"unicode"
+)
+
+const (
+	pfxGofail    = `// gofail:`
+	labelGofail  = `/* gofail-label */`
+	errVarGoFail = `__fpErr`
+
+	pfxGofailGo    = `// gofail-go:`
+	labelGofailGo  = `/* gofail-go-label */`
+	errVarGoFailGo = `__fpGoErr`
 )
 
 // ToFailpoints turns all gofail comments into failpoint code. Returns a list of
@@ -51,7 +62,10 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 				fps = append(fps, curfp)
 				curfp = nil
 			}
-		} else if label := gofailLabel(l); label != "" {
+		} else if label := gofailLabel(l, pfxGofail, labelGofail); label != "" {
+			// expose gofail label
+			l = label
+		} else if label := gofailLabel(l, pfxGofailGo, labelGofailGo); label != "" {
 			// expose gofail label
 			l = label
 		} else if curfp, err = newFailpoint(l); err != nil {
@@ -94,12 +108,18 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			continue
 		}
 
-		isHdr := strings.Contains(l, ", __fpErr := __fp_") && strings.HasPrefix(lTrim, "if")
+		isErrVarGoFail := strings.Contains(l, fmt.Sprintf(", %s := __fp_", errVarGoFail))
+		isErrVarGoFailGo := strings.Contains(l, fmt.Sprintf(", %s := __fp_", errVarGoFailGo))
+		isHdr := (isErrVarGoFail || isErrVarGoFailGo) && strings.HasPrefix(lTrim, "if")
 		if isHdr {
+			pfx := pfxGofail
+			if isErrVarGoFailGo {
+				pfx = pfxGofailGo
+			}
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
 			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
-			dst.WriteString(ws + "// gofail: var " + n + " " + t + "\n")
+			dst.WriteString(ws + pfx + " var " + n + " " + t + "\n")
 			if !strings.Contains(l, "; __badType") {
 				// not single liner
 				unmatchedBraces = 1
@@ -108,8 +128,11 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			continue
 		}
 
-		if isLabel := strings.Contains(l, "\t/* gofail-label */"); isLabel {
-			l = strings.Replace(l, "/* gofail-label */", "// gofail:", 1)
+		if isLabel := strings.Contains(l, "\t"+labelGofail); isLabel {
+			l = strings.Replace(l, labelGofail, pfxGofail, 1)
+		}
+		if isLabel := strings.Contains(l, "\t"+labelGofailGo); isLabel {
+			l = strings.Replace(l, labelGofailGo, pfxGofailGo, 1)
 		}
 
 		if _, werr := dst.WriteString(l); werr != nil {
@@ -123,15 +146,15 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 	return
 }
 
-func gofailLabel(l string) string {
-	if !strings.HasPrefix(strings.TrimSpace(l), "// gofail:") {
+func gofailLabel(l string, pfx string, lb string) string {
+	if !strings.HasPrefix(strings.TrimSpace(l), pfx) {
 		return ""
 	}
-	label := strings.SplitAfter(l, "// gofail:")[1]
+	label := strings.SplitAfter(l, pfx)[1]
 	if len(label) == 0 || !strings.Contains(label, ":") {
 		return ""
 	}
-	return strings.Replace(l, "// gofail:", "/* gofail-label */", 1)
+	return strings.Replace(l, pfx, lb, 1)
 }
 
 func numBraces(l string) (opening int, closing int) {
