@@ -15,17 +15,28 @@
 package runtime
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
 
 type Failpoint struct {
+	cmu      sync.RWMutex
+	ctx      context.Context
+	cancel   context.CancelFunc
+	donec    chan struct{}
+	released bool
+
 	mu sync.RWMutex
 	t  *terms
 }
 
-func NewFailpoint(pkg, name string) *Failpoint {
+func NewFailpoint(pkg, name string, goFailGo bool) *Failpoint {
 	fp := &Failpoint{}
+	if goFailGo {
+		fp.ctx, fp.cancel = context.WithCancel(context.Background())
+		fp.donec = make(chan struct{})
+	}
 	register(pkg+"/"+name, fp)
 	return fp
 }
@@ -49,7 +60,22 @@ func (fp *Failpoint) Acquire() (interface{}, error) {
 }
 
 // Release is called when the failpoint exists.
-func (fp *Failpoint) Release() { fp.mu.RUnlock() }
+func (fp *Failpoint) Release() {
+	fp.cmu.RLock()
+	ctx := fp.ctx
+	donec := fp.donec
+	fp.cmu.RUnlock()
+	if ctx != nil && !fp.released {
+		<-ctx.Done()
+		select {
+		case <-donec:
+		default:
+			close(donec)
+		}
+	}
+
+	fp.mu.RUnlock()
+}
 
 // BadType is called when the failpoint evaluates to the wrong type.
 func (fp *Failpoint) BadType(v interface{}, t string) {
