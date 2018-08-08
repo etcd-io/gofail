@@ -1,6 +1,6 @@
 # gofail
 
-[![Build Status](https://travis-ci.org/etcd-io/gofail.svg?branch=master)](https://travis-ci.org/etcd-io/gofail)
+[![Build Status](https://travis-ci.com/etcd-io/gofail.svg?branch=master)](https://travis-ci.com/etcd-io/gofail)
 
 An implementation of [failpoints][failpoint] for golang.
 
