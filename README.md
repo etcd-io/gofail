@@ -1,6 +1,6 @@
 # gofail
 
-[![Build Status](https://travis-ci.org/coreos/gofail.svg?branch=master)](https://travis-ci.org/coreos/gofail)
+[![Build Status](https://travis-ci.org/etcd-io/gofail.svg?branch=master)](https://travis-ci.org/etcd-io/gofail)
 
 An implementation of [failpoints][failpoint] for golang.
 
@@ -101,7 +101,7 @@ From a unit test,
 import (
 	"testing"
 
-	gofail "github.com/coreos/gofail/runtime"
+	gofail "github.com/etcd-io/gofail/runtime"
 )
 
 func TestWhatever(t *testing.T) {

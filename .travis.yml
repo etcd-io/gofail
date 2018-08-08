@@ -1,6 +1,6 @@
 dist: trusty
 language: go
-go_import_path: github.com/coreos/gofail
+go_import_path: github.com/etcd-io/gofail
 sudo: false
 
 go:

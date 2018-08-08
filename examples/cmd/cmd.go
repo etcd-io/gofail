@@ -18,7 +18,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/coreos/gofail/examples"
+	"github.com/etcd-io/gofail/examples"
 )
 
 func main() {
