@@ -40,6 +40,13 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 	for err == nil {
 		l, rerr := src.ReadString('\n')
 		if curfp != nil {
+			if strings.HasPrefix(strings.TrimSpace(l), "// gofail: wait") {
+				if len(l) > 0 && l[len(l)-1] == '\n' {
+					l = l[:len(l)-1]
+				}
+				curfp.code = append(curfp.code, "\t "+curfp.wait())
+				continue
+			}
 			if strings.HasPrefix(strings.TrimSpace(l), "//") {
 				if len(l) > 0 && l[len(l)-1] == '\n' {
 					l = l[:len(l)-1]
@@ -81,7 +88,6 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 		l, rerr := src.ReadString('\n')
 		err = rerr
 		lTrim := strings.TrimSpace(l)
-
 		if unmatchedBraces > 0 {
 			opening, closing := numBraces(l)
 			unmatchedBraces += opening - closing
@@ -89,7 +95,21 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 				// strip off badType footer
 				lTrim = strings.Split(lTrim, "; __badType")[0]
 			}
-			s := ws + "//" + wsPrefix(l, ws)[1:] + lTrim + "\n"
+			isWait := strings.Contains(lTrim, "/* gofail-wait */")
+			if isWait {
+				substr := " gofail:"
+				lTrim = strings.Replace(lTrim, "/* gofail-wait */", substr, 1)
+				index := strings.Index(lTrim, substr)
+				if index >= 0 {
+					lTrim = lTrim[:index+len(substr)] + " wait"
+				}
+			}
+			s := ws + "//"
+			if isWait {
+				s = s + lTrim + "\n"
+			} else {
+				s = s + wsPrefix(l, ws)[1:] + lTrim + "\n"
+			}
 			dst.WriteString(s)
 			continue
 		}

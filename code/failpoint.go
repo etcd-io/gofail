@@ -60,7 +60,11 @@ func (fp *Failpoint) hdr(varname string) string {
 		varname = "_"
 	}
 	return hdr + varname + ", __fpTypeOK := v" + fp.name +
-		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "} "
+		".(" + fp.varType + "); if !__fpTypeOK { goto __badType" + fp.name + "}"
+}
+
+func (fp *Failpoint) wait() string {
+	return "/* gofail-wait */ " + fp.Runtime() + ".Wait()"
 }
 
 func (fp *Failpoint) footer() string {

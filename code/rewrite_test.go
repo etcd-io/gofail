@@ -27,7 +27,7 @@ var examples = []struct {
 	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}", 1},
 	{"func f() {\n\t\t// gofail: var Test int\n\t\t// \tfmt.Println(Test)\n}", 1},
 	{"func f() {\n// gofail: var Test int\n// \tfmt.Println(Test)\n}", 1},
-	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}\n", 1},
+	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n\t// gofail: wait\n}", 1},
 	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)// return\n}\n", 1},
 	{"func f() {\n\t// gofail: var OneLineTest int\n}\n", 1},
 	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n\n\t// gofail: var Test2 int\n\t// fmt.Println(Test2)\n}\n", 2},
@@ -46,6 +46,20 @@ func f() {
 	}
 }
 `, 1},
+	{`
+func f() {
+	for {
+		if g() {
+			// gofail: var test1 struct{}
+			// gofail: wait
+			// fmt.Println(test1)
+			return
+		}
+		// gofail: var test2 int
+		// gofail: wait
+	}
+}
+`, 2},
 }
 
 func TestToFailpoint(t *testing.T) {

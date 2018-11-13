@@ -61,6 +61,18 @@ func Enable(failpath, inTerms string) error {
 	return err
 }
 
+// Notify notify the wait channel of the failpoint.
+func Notify(failpath string) error {
+	failpointsMu.RLock()
+	fp := failpoints[failpath]
+	failpointsMu.RUnlock()
+	if fp == nil {
+		return ErrNoExist
+	}
+	fp.Notify()
+	return nil
+}
+
 // enableAndLock enables a failpoint and returns a function to unlock it
 func enableAndLock(failpath, inTerms string) (func(), error) {
 	t, err := newTerms(failpath, inTerms)
