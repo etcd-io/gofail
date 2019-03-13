@@ -64,8 +64,8 @@ func (fp *Failpoint) hdr(varname string) string {
 }
 
 func (fp *Failpoint) footer() string {
-	return "; __badType" + fp.name + ": " +
-		fp.Runtime() + ".BadType(v" + fp.name + ", \"" + fp.varType + "\"); };"
+	return "; goto __nomock" + fp.name + "; __badType" + fp.name + ": " +
+		fp.Runtime() + ".BadType(v" + fp.name + ", \"" + fp.varType + "\"); __nomock" + fp.name + ": };"
 }
 
 func (fp *Failpoint) flushSingle(dst io.Writer) error {

@@ -87,7 +87,7 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			unmatchedBraces += opening - closing
 			if unmatchedBraces == 0 {
 				// strip off badType footer
-				lTrim = strings.Split(lTrim, "; __badType")[0]
+				lTrim = strings.Split(lTrim, "; goto __nomock")[0]
 			}
 			s := ws + "//" + wsPrefix(l, ws)[1:] + lTrim + "\n"
 			dst.WriteString(s)
@@ -100,7 +100,7 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
 			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
 			dst.WriteString(ws + "// gofail: var " + n + " " + t + "\n")
-			if !strings.Contains(l, "; __badType") {
+			if !strings.Contains(l, "; goto __nomock") {
 				// not single liner
 				unmatchedBraces = 1
 			}
