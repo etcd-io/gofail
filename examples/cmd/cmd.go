@@ -21,9 +21,23 @@ import (
 	"github.com/etcd-io/gofail/examples"
 )
 
+/*
+GOFAIL_HTTP=:22381 go run cmd.go
+
+curl -L http://localhost:22381
+
+curl \
+  -L http://localhost:22381/github.com/coreos/gofail/examples/ExampleLabelsGo \
+  -X PUT -d'return'
+
+curl \
+  -L http://localhost:22381/github.com/coreos/gofail/examples/ExampleLabelsGo \
+  -X DELETE
+*/
+
 func main() {
 	for {
-		log.Println(examples.ExampleFunc())
+		log.Println(examples.ExampleLabelsGoFunc())
 		time.Sleep(time.Second)
 	}
 }

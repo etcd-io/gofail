@@ -39,3 +39,18 @@ func ExampleLabelsFunc() (s string) {
 	}
 	return s
 }
+
+func ExampleLabelsGoFunc() (s string) {
+	i := 0
+	// gofail: myLabel:
+	for i < 5 {
+		s = s + "i"
+		i++
+		for j := 0; j < 5; j++ {
+			s = s + "j"
+			// gofail-go: var ExampleLabelsGo struct{}
+			// continue myLabel
+		}
+	}
+	return s
+}
