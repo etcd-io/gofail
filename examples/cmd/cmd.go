@@ -18,7 +18,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/etcd-io/gofail/examples"
+	"go.etcd.io/gofail/examples"
 )
 
 /*
