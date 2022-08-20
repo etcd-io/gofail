@@ -15,7 +15,7 @@
 package runtime
 
 import (
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"sort"
@@ -44,7 +44,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	// sets the failpoint
 	case r.Method == "PUT":
-		v, err := ioutil.ReadAll(r.Body)
+		v, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "failed ReadAll in PUT", http.StatusBadRequest)
 			return
