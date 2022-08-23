@@ -42,7 +42,7 @@ func ExampleLabelsFunc() (s string) {
 
 func ExampleLabelsGoFunc() (s string) {
 	i := 0
-	// gofail: myLabel:
+	// gofail-go: myLabel:
 	for i < 5 {
 		s = s + "i"
 		i++
