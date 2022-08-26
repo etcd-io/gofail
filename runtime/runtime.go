@@ -37,12 +37,12 @@ func init() {
 	if s := os.Getenv("GOFAIL_FAILPOINTS"); len(s) > 0 {
 		// format is <FAILPOINT>=<TERMS>[;<FAILPOINT>=<TERMS>;...]
 		for _, fp := range strings.Split(s, ";") {
-			fp_term := strings.Split(fp, "=")
-			if len(fp_term) != 2 {
+			fpTerm := strings.Split(fp, "=")
+			if len(fpTerm) != 2 {
 				fmt.Printf("bad failpoint %q\n", fp)
 				os.Exit(1)
 			}
-			envTerms[fp_term[0]] = fp_term[1]
+			envTerms[fpTerm[0]] = fpTerm[1]
 		}
 	}
 	if s := os.Getenv("GOFAIL_HTTP"); len(s) > 0 {
