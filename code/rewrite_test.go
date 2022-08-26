@@ -82,14 +82,17 @@ func TestToComment(t *testing.T) {
 	for i, ex := range examples {
 		dst := bytes.NewBuffer(make([]byte, 0, 1024))
 		src := strings.NewReader(ex.code)
-		fps, err := ToFailpoints(dst, src)
+		_, err := ToFailpoints(dst, src)
 		if err != nil {
 			t.Fatalf("%d: %v", i, err)
 		}
 
 		src = strings.NewReader(dst.String())
 		dst.Reset()
-		fps, err = ToComments(dst, src)
+		fps, err := ToComments(dst, src)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 		plainCode := dst.String()
 
 		if plainCode != ex.code {
