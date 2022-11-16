@@ -96,7 +96,7 @@ func Disable(failpath string) error {
 	fp.cmu.RUnlock()
 	if cancel != nil && donec != nil {
 		cancel()
-		<-donec
+		close(donec)
 
 		fp.cmu.Lock()
 		fp.ctx, fp.cancel = context.WithCancel(context.Background())
