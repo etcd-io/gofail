@@ -46,18 +46,6 @@ func f() {
 	}
 }
 `, 1},
-	{`
-	func f() {
-		// gofail: labelTest:
-		for {
-			if g() {
-				// gofail-go: var testLabel struct{}
-				// continue labelTest
-				return
-			}
-		}
-	}
-	`, 1},
 }
 
 func TestToFailpoint(t *testing.T) {

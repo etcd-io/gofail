@@ -15,7 +15,6 @@
 package runtime
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -77,7 +76,6 @@ func enableAndLock(failpath, inTerms string) (func(), error) {
 	}
 	fp.mu.Lock()
 	fp.t = t
-	fp.released = false
 	return func() { fp.mu.Unlock() }, nil
 }
 
@@ -88,21 +86,6 @@ func Disable(failpath string) error {
 	failpointsMu.RUnlock()
 	if fp == nil {
 		return ErrNoExist
-	}
-
-	fp.cmu.RLock()
-	cancel := fp.cancel
-	donec := fp.donec
-	fp.cmu.RUnlock()
-	if cancel != nil && donec != nil {
-		cancel()
-		<-donec
-
-		fp.cmu.Lock()
-		fp.ctx, fp.cancel = context.WithCancel(context.Background())
-		fp.donec = make(chan struct{})
-		fp.released = true
-		fp.cmu.Unlock()
 	}
 
 	fp.mu.Lock()

@@ -21,8 +21,6 @@ import (
 )
 
 type Failpoint struct {
-	goFailGo bool
-
 	name    string
 	varType string
 	code    []string
@@ -35,21 +33,18 @@ type Failpoint struct {
 // failpoint comment header.
 func newFailpoint(l string) (*Failpoint, error) {
 	lt := strings.TrimSpace(l)
-	isGoFail, isGoFailGo := strings.HasPrefix(lt, pfxGofail), strings.HasPrefix(lt, pfxGofailGo)
-	if !isGoFail && !isGoFailGo {
+	isGoFail := strings.HasPrefix(lt, pfxGofail)
+	if !isGoFail {
 		// not a failpoint
 		return nil, nil
 	}
 	pfx := pfxGofail
-	if isGoFailGo {
-		pfx = pfxGofailGo
-	}
 	cmd := strings.SplitAfter(l, pfx)[1]
 	fields := strings.Fields(cmd)
 	if len(fields) != 3 || fields[0] != "var" {
 		return nil, fmt.Errorf("failpoint: malformed comment header %q", l)
 	}
-	return &Failpoint{goFailGo: isGoFailGo, name: fields[1], varType: fields[2], ws: strings.Split(l, "//")[0]}, nil
+	return &Failpoint{name: fields[1], varType: fields[2], ws: strings.Split(l, "//")[0]}, nil
 }
 
 // flush writes the failpoint code to a buffer
@@ -62,14 +57,10 @@ func (fp *Failpoint) flush(dst io.Writer) error {
 
 func (fp *Failpoint) hdr(varname string) string {
 	ev := errVarGoFail
-	if fp.goFailGo {
-		ev = errVarGoFailGo
-	}
+
 	hdr := fp.ws + "if v" + fp.name + fmt.Sprintf(", %s := ", ev) + fp.Runtime() + ".Acquire();" + fmt.Sprintf(" %s == nil { ", ev)
 	exec := "defer "
-	if fp.goFailGo {
-		exec = "go "
-	}
+
 	hdr = hdr + exec + fp.Runtime() + ".Release(); "
 	if fp.varType == "struct{}" {
 		// unused
