@@ -21,11 +21,15 @@ import (
 )
 
 type Failpoint struct {
-	cmu      sync.RWMutex
-	ctx      context.Context
-	cancel   context.CancelFunc
-	donec    chan struct{}
-	released bool
+	cmu    sync.RWMutex
+	ctx    context.Context
+	cancel context.CancelFunc
+	donec  chan struct{}
+	// gofail-go failpoint's release process will be blocked until it's
+	// deleted/disabled by users. The purpose is to make sure users can't
+	// update a gofail-go failpoint until it's deleted/disabled.
+	releasing bool
+	released  bool
 
 	mu sync.RWMutex
 	t  *terms
@@ -61,11 +65,16 @@ func (fp *Failpoint) Acquire() (interface{}, error) {
 
 // Release is called when the failpoint exists.
 func (fp *Failpoint) Release() {
+	fp.cmu.Lock()
+	fp.releasing = true
+	fp.cmu.Unlock()
+
 	fp.cmu.RLock()
 	ctx := fp.ctx
 	donec := fp.donec
+	released := fp.released
 	fp.cmu.RUnlock()
-	if ctx != nil && !fp.released {
+	if ctx != nil && !released {
 		<-ctx.Done()
 		select {
 		case <-donec:
@@ -73,6 +82,10 @@ func (fp *Failpoint) Release() {
 			close(donec)
 		}
 	}
+
+	fp.cmu.Lock()
+	fp.releasing = false
+	fp.cmu.Unlock()
 
 	fp.mu.RUnlock()
 }

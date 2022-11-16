@@ -93,14 +93,20 @@ func Disable(failpath string) error {
 	fp.cmu.RLock()
 	cancel := fp.cancel
 	donec := fp.donec
+	releasing := fp.releasing
 	fp.cmu.RUnlock()
 	if cancel != nil && donec != nil {
 		cancel()
-		<-donec
+		if releasing {
+			// If a gofail-go failpoint is in progress of release, then
+			// we need to wait until it's really released.
+			<-donec
+		}
 
 		fp.cmu.Lock()
 		fp.ctx, fp.cancel = context.WithCancel(context.Background())
 		fp.donec = make(chan struct{})
+		fp.releasing = false
 		fp.released = true
 		fp.cmu.Unlock()
 	}
