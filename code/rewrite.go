@@ -26,10 +26,6 @@ const (
 	pfxGofail    = `// gofail:`
 	labelGofail  = `/* gofail-label */`
 	errVarGoFail = `__fpErr`
-
-	pfxGofailGo    = `// gofail-go:`
-	labelGofailGo  = `/* gofail-go-label */`
-	errVarGoFailGo = `__fpGoErr`
 )
 
 // ToFailpoints turns all gofail comments into failpoint code. Returns a list of
@@ -63,9 +59,6 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 				curfp = nil
 			}
 		} else if label := gofailLabel(l, pfxGofail, labelGofail); label != "" {
-			// expose gofail label
-			l = label
-		} else if label := gofailLabel(l, pfxGofailGo, labelGofailGo); label != "" {
 			// expose gofail label
 			l = label
 		} else if curfp, err = newFailpoint(l); err != nil {
@@ -109,13 +102,10 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 		}
 
 		isErrVarGoFail := strings.Contains(l, fmt.Sprintf(", %s := __fp_", errVarGoFail))
-		isErrVarGoFailGo := strings.Contains(l, fmt.Sprintf(", %s := __fp_", errVarGoFailGo))
-		isHdr := (isErrVarGoFail || isErrVarGoFailGo) && strings.HasPrefix(lTrim, "if")
+		isHdr := isErrVarGoFail && strings.HasPrefix(lTrim, "if")
 		if isHdr {
 			pfx := pfxGofail
-			if isErrVarGoFailGo {
-				pfx = pfxGofailGo
-			}
+
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
 			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
@@ -130,9 +120,6 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 
 		if isLabel := strings.Contains(l, "\t"+labelGofail); isLabel {
 			l = strings.Replace(l, labelGofail, pfxGofail, 1)
-		}
-		if isLabel := strings.Contains(l, "\t"+labelGofailGo); isLabel {
-			l = strings.Replace(l, labelGofailGo, pfxGofailGo, 1)
 		}
 
 		if _, werr := dst.WriteString(l); werr != nil {

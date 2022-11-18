@@ -40,11 +40,10 @@ func (b *Binding) Write(dst io.Writer) error {
 	for _, fp := range b.fps {
 		_, err := fmt.Fprintf(
 			dst,
-			"var %s *runtime.Failpoint = runtime.NewFailpoint(%q, %q, %v)\n",
+			"var %s *runtime.Failpoint = runtime.NewFailpoint(%q, %q)\n",
 			fp.Runtime(),
 			b.fppath,
 			fp.Name(),
-			fp.goFailGo,
 		)
 		if err != nil {
 			return err
