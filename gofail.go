@@ -183,11 +183,7 @@ func main() {
 	case "disable":
 		xfrm = code.ToComments
 	case "--version":
-		fmt.Println("Git SHA: ", GitSHA)
-		fmt.Println("Go Version: ", runtime.Version())
-		fmt.Println("gofail Version: ", Version)
-		fmt.Printf("Go OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
-		os.Exit(1)
+		showVersion()
 	default:
 		fmt.Println(usageLine)
 		os.Exit(1)
@@ -216,4 +212,12 @@ func main() {
 			os.Remove(path.Join(path.Dir(files[i]), fname))
 		}
 	}
+}
+
+func showVersion() {
+	fmt.Println("Git SHA: ", GitSHA)
+	fmt.Println("Go Version: ", runtime.Version())
+	fmt.Println("gofail Version: ", Version)
+	fmt.Printf("Go OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	os.Exit(0)
 }
