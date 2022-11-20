@@ -22,10 +22,28 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"go.etcd.io/gofail/code"
 )
+
+var (
+	// Git SHA Value will be set during build
+	GitSHA = "Not provided (use ./build.sh instead of go build)"
+
+	Version = "0.1.0"
+)
+
+var usageLine = `Usage:
+gofail enable [list of files or directories]
+    Enable the failpoints
+
+gofail disable [list of files or directories]
+    Disable the checkpoints
+	
+gofail --version
+    Show the version of gofail`
 
 type xfrmFunc func(io.Writer, io.Reader) ([]*code.Failpoint, error)
 
@@ -152,7 +170,7 @@ func writeBinding(file string, fps []*code.Failpoint) {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("not enough arguments")
+		fmt.Println(usageLine)
 		os.Exit(1)
 	}
 
@@ -164,8 +182,14 @@ func main() {
 		enable = true
 	case "disable":
 		xfrm = code.ToComments
+	case "--version":
+		fmt.Println("Git SHA: ", GitSHA)
+		fmt.Println("Go Version: ", runtime.Version())
+		fmt.Println("gofail Version: ", Version)
+		fmt.Printf("Go OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+		os.Exit(1)
 	default:
-		fmt.Println("expected enable or disable")
+		fmt.Println(usageLine)
 		os.Exit(1)
 	}
 
