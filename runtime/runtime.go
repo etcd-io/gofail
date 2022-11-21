@@ -52,75 +52,91 @@ func init() {
 	}
 }
 
+func Lock() {
+	failpointsMu.Lock()
+}
+
+func UnLock() {
+	failpointsMu.Unlock()
+}
+
 // Enable sets a failpoint to a given failpoint description.
 func Enable(failpath, inTerms string) error {
-	unlock, err := enableAndLock(failpath, inTerms)
-	if unlock != nil {
-		unlock()
-	}
-	return err
+	failpointsMu.Lock()
+	defer failpointsMu.Unlock()
+	return enable(failpath, inTerms)
 }
 
-// enableAndLock enables a failpoint and returns a function to unlock it
-func enableAndLock(failpath, inTerms string) (func(), error) {
-	t, err := newTerms(failpath, inTerms)
-	if err != nil {
-		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", failpath, inTerms, err)
-		return nil, err
-	}
-	failpointsMu.RLock()
+// enable enables a failpoint
+func enable(failpath, inTerms string) error {
 	fp := failpoints[failpath]
-	failpointsMu.RUnlock()
-	if fp == nil {
-		return nil, ErrNoExist
-	}
-	fp.mu.Lock()
-	fp.t = t
-	return func() { fp.mu.Unlock() }, nil
-}
-
-// Disable stops a failpoint from firing.
-func Disable(failpath string) error {
-	failpointsMu.RLock()
-	fp := failpoints[failpath]
-	failpointsMu.RUnlock()
 	if fp == nil {
 		return ErrNoExist
 	}
 
-	fp.mu.Lock()
-	defer fp.mu.Unlock()
+	t, err := newTerms(failpath, inTerms)
+	if err != nil {
+		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", failpath, inTerms, err)
+		return err
+	}
+	fp.t = t
+
+	return nil
+}
+
+// Disable stops a failpoint from firing.
+func Disable(failpath string) error {
+	failpointsMu.Lock()
+	defer failpointsMu.Unlock()
+	return disable(failpath)
+}
+
+func disable(failpath string) error {
+	fp := failpoints[failpath]
+	if fp == nil {
+		return ErrNoExist
+	}
+
 	if fp.t == nil {
 		return ErrDisabled
 	}
 	fp.t = nil
+
 	return nil
 }
 
 // Status gives the current setting for the failpoint
 func Status(failpath string) (string, error) {
-	failpointsMu.RLock()
+	failpointsMu.Lock()
+	defer failpointsMu.Unlock()
+	return status(failpath)
+}
+
+func status(failpath string) (string, error) {
 	fp := failpoints[failpath]
-	failpointsMu.RUnlock()
 	if fp == nil {
 		return "", ErrNoExist
 	}
-	fp.mu.RLock()
+
 	t := fp.t
-	fp.mu.RUnlock()
 	if t == nil {
 		return "", ErrDisabled
 	}
+
 	return t.desc, nil
 }
 
 func List() []string {
-	failpointsMu.RLock()
+	failpointsMu.Lock()
+	defer failpointsMu.Unlock()
+	return list()
+}
+
+func list() []string {
 	ret := make([]string, 0, len(failpoints))
 	for fp := range failpoints {
 		ret = append(ret, fp)
 	}
-	failpointsMu.RUnlock()
 	return ret
 }
 
