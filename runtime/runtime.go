@@ -112,25 +112,25 @@ func disable(name string) error {
 	return nil
 }
 
-// Status gives the current setting for the failpoint
-func Status(failpath string) (string, error) {
+// Status gives the current setting and execution count for the failpoint
+func Status(failpath string) (string, int, error) {
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
 	return status(failpath)
 }
 
-func status(failpath string) (string, error) {
+func status(failpath string) (string, int, error) {
 	fp := failpoints[failpath]
 	if fp == nil {
-		return "", ErrNoExist
+		return "", 0, ErrNoExist
 	}
 
 	t := fp.t
 	if t == nil {
-		return "", ErrDisabled
+		return "", 0, ErrDisabled
 	}
 
-	return t.desc, nil
+	return t.desc, t.counter, nil
 }
 
 func List() []string {
