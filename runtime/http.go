@@ -72,6 +72,13 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				lines[i] = fps[i] + "=" + s
 			}
 			w.Write([]byte(strings.Join(lines, "\n") + "\n"))
+		} else if strings.HasSuffix(key, "/count") {
+			fp := key[:len(key)-len("/count")]
+			count, err := StatusCount(fp)
+			if err != nil {
+				http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
+			}
+			w.Write([]byte(count))
 		} else {
 			status, err := Status(key)
 			if err != nil {

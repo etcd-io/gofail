@@ -114,6 +114,25 @@ func Status(failpath string) (string, error) {
 	return t.desc, nil
 }
 
+// StatusCount outputs how many times current term was executed
+func StatusCount(failpath string) (string, error) {
+	failpointsMu.RLock()
+	fp := failpoints[failpath]
+	failpointsMu.RUnlock()
+	if fp == nil {
+		return "", ErrNoExist
+	}
+	fp.mu.RLock()
+	t := fp.t
+	fp.mu.RUnlock()
+	if t == nil {
+		return "", ErrDisabled
+	}
+	count := fp.t.counter
+	return fmt.Sprint(count), nil
+
+}
+
 func List() []string {
 	failpointsMu.RLock()
 	ret := make([]string, 0, len(failpoints))
