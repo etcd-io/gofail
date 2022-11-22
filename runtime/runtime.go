@@ -34,14 +34,10 @@ func init() {
 	failpoints = make(map[string]*Failpoint)
 	envTerms = make(map[string]string)
 	if s := os.Getenv("GOFAIL_FAILPOINTS"); len(s) > 0 {
-		// format is <FAILPOINT>=<TERMS>[;<FAILPOINT>=<TERMS>;...]
-		for _, fp := range strings.Split(s, ";") {
-			fpTerm := strings.Split(fp, "=")
-			if len(fpTerm) != 2 {
-				fmt.Printf("bad failpoint %q\n", fp)
-				os.Exit(1)
-			}
-			envTerms[fpTerm[0]] = fpTerm[1]
+		if fpMap, err := parseFailpoints(s); err != nil {
+			panic(err)
+		} else {
+			envTerms = fpMap
 		}
 	}
 	if s := os.Getenv("GOFAIL_HTTP"); len(s) > 0 {
@@ -52,12 +48,18 @@ func init() {
 	}
 }
 
-func Lock() {
-	failpointsMu.Lock()
-}
-
-func UnLock() {
-	failpointsMu.Unlock()
+func parseFailpoints(fps string) (map[string]string, error) {
+	// The format is <FAILPOINT>=<TERMS>[;<FAILPOINT>=<TERMS>]*
+	fpMap := map[string]string{}
+	for _, fp := range strings.Split(fps, ";") {
+		fpTerm := strings.Split(fp, "=")
+		if len(fpTerm) != 2 {
+			err := fmt.Errorf("bad failpoint %q", fp)
+			return nil, err
+		}
+		fpMap[fpTerm[0]] = fpTerm[1]
+	}
+	return fpMap, nil
 }
 
 // Enable sets a failpoint to a given failpoint description.

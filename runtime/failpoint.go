@@ -31,6 +31,9 @@ func NewFailpoint(pkg, name string) *Failpoint {
 // Acquire gets evalutes the failpoint terms; if the failpoint
 // is active, it will return a value. Otherwise, returns a non-nil error.
 func (fp *Failpoint) Acquire() (interface{}, error) {
+	failpointsMu.RLock()
+	defer failpointsMu.RUnlock()
+
 	if fp.t == nil {
 		return nil, ErrDisabled
 	}
