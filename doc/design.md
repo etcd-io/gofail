@@ -51,7 +51,7 @@ $ GOFAIL_FAILPOINTS='my/package/path/SomeFuncString=sleep("600s")' ./cmd
 The dynamic way is to set an HTTP endpoint using environment variable `GOFAIL_HTTP` when starting your application, 
 and add [gofail terms](#gofail-term) via the endpoint afterwards. See example below,
 ```
-$ GOFAIL_HTTP="127.0.0.1:22381 ./cmd
+$ GOFAIL_HTTP="127.0.0.1:22381" ./cmd
 
 $ curl http://127.0.0.1:22381/my/package/path/SomeFuncString -XPUT -d'sleep("600s")'
 ```
