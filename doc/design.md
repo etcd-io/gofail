@@ -48,12 +48,22 @@ The static way is to set [gofail terms](#gofail-term) using environment variable
 $ GOFAIL_FAILPOINTS='my/package/path/SomeFuncString=sleep("600s")' ./cmd
 ```
 
+You can set multiple failpoints by using ";" as the delimiter,
+```
+GOFAIL_FAILPOINTS='failpoint1=return("hello");failpoint2=sleep(10)' ./cmd
+```
+
 The dynamic way is to set an HTTP endpoint using environment variable `GOFAIL_HTTP` when starting your application, 
 and add [gofail terms](#gofail-term) via the endpoint afterwards. See example below,
 ```
 $ GOFAIL_HTTP="127.0.0.1:22381" ./cmd
 
 $ curl http://127.0.0.1:22381/my/package/path/SomeFuncString -XPUT -d'sleep("600s")'
+```
+
+Similarly, you can set multiple failpoints using endpoint `/failpoints`,
+```
+curl http://127.0.0.1:22381/failpoints -X PUT -d'failpoint1=return("hello");failpoint2=sleep(10)'
 ```
 
 ## Generated code

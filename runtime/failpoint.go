@@ -16,12 +16,10 @@ package runtime
 
 import (
 	"fmt"
-	"sync"
 )
 
 type Failpoint struct {
-	mu sync.RWMutex
-	t  *terms
+	t *terms
 }
 
 func NewFailpoint(pkg, name string) *Failpoint {
@@ -33,24 +31,22 @@ func NewFailpoint(pkg, name string) *Failpoint {
 // Acquire gets evalutes the failpoint terms; if the failpoint
 // is active, it will return a value. Otherwise, returns a non-nil error.
 func (fp *Failpoint) Acquire() (interface{}, error) {
-	fp.mu.RLock()
+	failpointsMu.RLock()
+	defer failpointsMu.RUnlock()
+
 	if fp.t == nil {
-		fp.mu.RUnlock()
 		return nil, ErrDisabled
 	}
 	v, err := fp.t.eval()
 	if v == nil {
 		err = ErrDisabled
 	}
-	if err != nil {
-		fp.mu.RUnlock()
-	}
 	return v, err
 }
 
 // Release is called when the failpoint exists.
+// TODO(ahrtr): remove Release from template
 func (fp *Failpoint) Release() {
-	fp.mu.RUnlock()
 }
 
 // BadType is called when the failpoint evaluates to the wrong type.
