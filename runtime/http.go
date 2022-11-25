@@ -43,6 +43,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// at a time, so it (the efficiency) isn't a problem.
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
+	defer flush(w)
 
 	key := r.RequestURI
 	if len(key) == 0 || key[0] != '/' {
@@ -75,7 +76,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		writeCodeAndFlush(w, http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 
 	// gets status of the failpoint
 	case r.Method == "GET":
@@ -87,13 +88,13 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				s, _ := status(fps[i])
 				lines[i] = fps[i] + "=" + s
 			}
-			writeDataAndFlush(w, []byte(strings.Join(lines, "\n")+"\n"))
+			w.Write([]byte(strings.Join(lines, "\n") + "\n"))
 		} else {
 			status, err := status(key)
 			if err != nil {
 				http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
 			}
-			writeDataAndFlush(w, []byte(status+"\n"))
+			w.Write([]byte(status + "\n"))
 		}
 
 	// deactivates a failpoint
@@ -102,23 +103,13 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "failed to delete failpoint "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		writeCodeAndFlush(w, http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 	default:
 		w.Header().Add("Allow", "DELETE")
 		w.Header().Add("Allow", "GET")
 		w.Header().Set("Allow", "PUT")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-}
-
-func writeCodeAndFlush(w http.ResponseWriter, statusCode int) {
-	w.WriteHeader(http.StatusNoContent)
-	flush(w)
-}
-
-func writeDataAndFlush(w http.ResponseWriter, data []byte) {
-	w.Write(data)
-	flush(w)
 }
 
 func flush(w http.ResponseWriter) {
