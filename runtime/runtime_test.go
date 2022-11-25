@@ -23,32 +23,44 @@ func TestParseFailpoints(t *testing.T) {
 	testCases := []struct {
 		name           string
 		fps            string
+		expectErr      bool
 		expectedFpsMap map[string]string
 	}{
 		{
 			name:           "only one valid failpoint",
 			fps:            "failpoint1=print",
+			expectErr:      false,
 			expectedFpsMap: map[string]string{"failpoint1": "print"},
 		},
 		{
 			name:           "only one invalid failpoint",
 			fps:            "failpoint1",
+			expectErr:      true,
 			expectedFpsMap: nil,
 		},
 		{
 			name:           "multiple valid failpoints",
 			fps:            "failpoint1=print;failpoint2=sleep(10)",
+			expectErr:      false,
 			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
 		},
 		{
 			name:           "multiple invalid failpoints",
 			fps:            "failpoint1=print_failpoint2=sleep(10)",
+			expectErr:      true,
 			expectedFpsMap: nil,
 		},
 		{
 			name:           "partial valid failpoints",
 			fps:            "failpoint1=print;failpoint2",
+			expectErr:      true,
 			expectedFpsMap: nil,
+		},
+		{
+			name:           "empty failpoints",
+			fps:            "",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{},
 		},
 	}
 
@@ -57,8 +69,7 @@ func TestParseFailpoints(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			fpsMap, err := parseFailpoints(tc.fps)
 
-			// When tc.expectedFpsMap is nil, then we expect `parseFailpoints` returns error.
-			require.Equal(t, tc.expectedFpsMap == nil, err != nil, "Unexpected result, tc.expectedFpsMap: %v, err: %v", tc.expectedFpsMap, err)
+			require.Equal(t, tc.expectErr, err != nil, "Unexpected result, tc.expectErr: %t, err: %v", tc.expectedFpsMap, err)
 
 			require.Equal(t, tc.expectedFpsMap, fpsMap, "Unexpected result, expected: %v, got: %v", tc.expectedFpsMap, fpsMap)
 		})

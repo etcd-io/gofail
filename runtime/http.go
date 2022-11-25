@@ -43,6 +43,8 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// at a time, so it (the efficiency) isn't a problem.
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
+	// flush before unlocking so a panic failpoint won't
+	// take down the http server before it sends the response
 	defer flush(w)
 
 	key := r.RequestURI
@@ -114,8 +116,6 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func flush(w http.ResponseWriter) {
 	if f, ok := w.(http.Flusher); ok {
-		// flush before unlocking so a panic failpoint won't
-		// take down the http server before it sends the response
 		f.Flush()
 	}
 }

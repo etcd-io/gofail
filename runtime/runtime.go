@@ -35,7 +35,8 @@ func init() {
 	envTerms = make(map[string]string)
 	if s := os.Getenv("GOFAIL_FAILPOINTS"); len(s) > 0 {
 		if fpMap, err := parseFailpoints(s); err != nil {
-			panic(err)
+			fmt.Printf("fail to parse failpoint: %v\n", err)
+			os.Exit(1)
 		} else {
 			envTerms = fpMap
 		}
@@ -51,6 +52,9 @@ func init() {
 func parseFailpoints(fps string) (map[string]string, error) {
 	// The format is <FAILPOINT>=<TERMS>[;<FAILPOINT>=<TERMS>]*
 	fpMap := map[string]string{}
+	if len(fps) == 0 {
+		return fpMap, nil
+	}
 	for _, fp := range strings.Split(fps, ";") {
 		fpTerm := strings.Split(fp, "=")
 		if len(fpTerm) != 2 {
