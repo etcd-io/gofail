@@ -52,10 +52,11 @@ func init() {
 func parseFailpoints(fps string) (map[string]string, error) {
 	// The format is <FAILPOINT>=<TERMS>[;<FAILPOINT>=<TERMS>]*
 	fpMap := map[string]string{}
-	if len(fps) == 0 {
-		return fpMap, nil
-	}
+
 	for _, fp := range strings.Split(fps, ";") {
+		if len(fp) == 0 {
+			continue
+		}
 		fpTerm := strings.Split(fp, "=")
 		if len(fpTerm) != 2 {
 			err := fmt.Errorf("bad failpoint %q", fp)

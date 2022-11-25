@@ -62,6 +62,48 @@ func TestParseFailpoints(t *testing.T) {
 			expectErr:      false,
 			expectedFpsMap: map[string]string{},
 		},
+		{
+			name:           "one empty failpoint at the head",
+			fps:            ";failpoint1=print;failpoint2=sleep(10)",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "multiple empty failpoints at the head",
+			fps:            ";;failpoint1=print;failpoint2=sleep(10)",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "one empty failpoint at the tail",
+			fps:            "failpoint1=print;failpoint2=sleep(10);",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "multiple empty failpoints at the tail",
+			fps:            "failpoint1=print;failpoint2=sleep(10);;",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "one empty failpoint in the middle",
+			fps:            "failpoint1=print;;failpoint2=sleep(10)",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "multiple empty failpoints in the middle",
+			fps:            "failpoint1=print;;;failpoint2=sleep(10)",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
+		{
+			name:           "multiple empty failpoints at different places",
+			fps:            ";failpoint1=print;;failpoint2=sleep(10);",
+			expectErr:      false,
+			expectedFpsMap: map[string]string{"failpoint1": "print", "failpoint2": "sleep(10)"},
+		},
 	}
 
 	for _, tc := range testCases {
