@@ -59,9 +59,7 @@ func (fp *Failpoint) hdr(varname string) string {
 	ev := errVarGoFail
 
 	hdr := fp.ws + "if v" + fp.name + fmt.Sprintf(", %s := ", ev) + fp.Runtime() + ".Acquire();" + fmt.Sprintf(" %s == nil { ", ev)
-	exec := "defer "
 
-	hdr = hdr + exec + fp.Runtime() + ".Release(); "
 	if fp.varType == "struct{}" {
 		// unused
 		varname = "_"
