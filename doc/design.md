@@ -89,7 +89,7 @@ package <PACKAGE_NAME>
 
 import "go.etcd.io/gofail/runtime"
 
-var __fp_<FAILPOINT_NAME> *runtime.Failpoint = runtime.NewFailpoint("<PACKAGE_NAME>", "<FAILPOINT_NAME>", true/false)
+var __fp_<FAILPOINT_NAME> *runtime.Failpoint = runtime.NewFailpoint("<PACKAGE_NAME>", "<FAILPOINT_NAME>")
 ```
 
 The generated file name is similar to the original go source file name, but has additional suffix ".fail" in the basename. For example, the original file name is 
@@ -107,7 +107,7 @@ func ExampleOneLineFunc() string {
 **Translated code**:
 ```
 func ExampleOneLineFunc() string {
-	if vExampleOneLine, __fpErr := __fp_ExampleOneLine.Acquire(); __fpErr == nil { defer __fp_ExampleOneLine.Release(); _, __fpTypeOK := vExampleOneLine.(struct{}); if !__fpTypeOK { goto __badTypeExampleOneLine} ; __badTypeExampleOneLine: __fp_ExampleOneLine.BadType(vExampleOneLine, "struct{}"); };
+	if vExampleOneLine, __fpErr := __fp_ExampleOneLine.Acquire(); __fpErr == nil { _, __fpTypeOK := vExampleOneLine.(struct{}); if !__fpTypeOK { goto __badTypeExampleOneLine} ; __badTypeExampleOneLine: __fp_ExampleOneLine.BadType(vExampleOneLine, "struct{}"); };
 	return "abc"
 }
 ```
@@ -116,7 +116,6 @@ Formatting the code using `gofmt -w .`, as below:
 ```
 func ExampleOneLineFunc() string {
 	if vExampleOneLine, __fpErr := __fp_ExampleOneLine.Acquire(); __fpErr == nil {
-		defer __fp_ExampleOneLine.Release()
 		_, __fpTypeOK := vExampleOneLine.(struct{})
 		if !__fpTypeOK {
 			goto __badTypeExampleOneLine
@@ -136,7 +135,7 @@ package examples
 
 import "go.etcd.io/gofail/runtime"
 
-var __fp_ExampleOneLine *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleOneLine", false)
+var __fp_ExampleOneLine *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleOneLine")
 ```
 
 In the following examples, only the corresponding generated entry is provided because they have the same file header, including comment, package clause and import declaration. 
@@ -156,7 +155,7 @@ The code `return ExampleString` is the customized code.
 **Translated code**:
 ```
 func ExampleFunc() string {
-	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { defer __fp_ExampleString.Release(); ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
+	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
 		 return ExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); };
 	return "example"
 }
@@ -166,7 +165,6 @@ Formatting the code using `gofmt -w .`, as below:
 ```
 func ExampleFunc() string {
 	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil {
-		defer __fp_ExampleString.Release()
 		ExampleString, __fpTypeOK := vExampleString.(string)
 		if !__fpTypeOK {
 			goto __badTypeExampleString
@@ -181,7 +179,7 @@ func ExampleFunc() string {
 
 **Generated code**:
 ```
-var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString", false)
+var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString")
 ```
 
 ### Example 3: With multiple lines of customized code
@@ -200,7 +198,7 @@ There are two lines of customized code: `ExampleString = "Hello, " + ExampleStri
 **Translated code**:
 ```
 func ExampleFunc() string {
-	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { defer __fp_ExampleString.Release(); ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
+	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
 		 ExampleString = "Hello, " + ExampleString
 		 return ExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); };
 	return "example"
@@ -211,7 +209,6 @@ Formatting the code using `gofmt -w .`, as below:
 ```
 func ExampleFunc() string {
 	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil {
-		defer __fp_ExampleString.Release()
 		ExampleString, __fpTypeOK := vExampleString.(string)
 		if !__fpTypeOK {
 			goto __badTypeExampleString
@@ -227,7 +224,7 @@ func ExampleFunc() string {
 
 **Generated code**:
 ```
-var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString", false)
+var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString")
 ```
 
 ### Example 4: With gofail label
@@ -261,7 +258,7 @@ func ExampleLabelsFunc() (s string) {
 		i++
 		for j := 0; j < 5; j++ {
 			s = s + "j"
-			if vExampleLabels, __fpErr := __fp_ExampleLabels.Acquire(); __fpErr == nil { defer __fp_ExampleLabels.Release(); _, __fpTypeOK := vExampleLabels.(struct{}); if !__fpTypeOK { goto __badTypeExampleLabels} 
+			if vExampleLabels, __fpErr := __fp_ExampleLabels.Acquire(); __fpErr == nil { _, __fpTypeOK := vExampleLabels.(struct{}); if !__fpTypeOK { goto __badTypeExampleLabels} 
 				 continue myLabel; __badTypeExampleLabels: __fp_ExampleLabels.BadType(vExampleLabels, "struct{}"); };
 		}
 	}
@@ -280,7 +277,6 @@ func ExampleLabelsFunc() (s string) {
 		for j := 0; j < 5; j++ {
 			s = s + "j"
 			if vExampleLabels, __fpErr := __fp_ExampleLabels.Acquire(); __fpErr == nil {
-				defer __fp_ExampleLabels.Release()
 				_, __fpTypeOK := vExampleLabels.(struct{})
 				if !__fpTypeOK {
 					goto __badTypeExampleLabels
@@ -297,7 +293,7 @@ func ExampleLabelsFunc() (s string) {
 
 **Generated code**:
 ```
-var __fp_ExampleLabels *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleLabels", false)
+var __fp_ExampleLabels *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleLabels")
 ```
 
 ## Gofail Term

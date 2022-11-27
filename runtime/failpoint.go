@@ -44,11 +44,6 @@ func (fp *Failpoint) Acquire() (interface{}, error) {
 	return v, err
 }
 
-// Release is called when the failpoint exists.
-// TODO(ahrtr): remove Release from template
-func (fp *Failpoint) Release() {
-}
-
 // BadType is called when the failpoint evaluates to the wrong type.
 func (fp *Failpoint) BadType(v interface{}, t string) {
 	fmt.Printf("failpoint: %q got value %v of type \"%T\" but expected type %q\n", fp.t.fpath, v, v, t)
