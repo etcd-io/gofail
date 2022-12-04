@@ -68,22 +68,22 @@ func parseFailpoints(fps string) (map[string]string, error) {
 }
 
 // Enable sets a failpoint to a given failpoint description.
-func Enable(failpath, inTerms string) error {
+func Enable(name, inTerms string) error {
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
-	return enable(failpath, inTerms)
+	return enable(name, inTerms)
 }
 
 // enable enables a failpoint
-func enable(failpath, inTerms string) error {
-	fp := failpoints[failpath]
+func enable(name, inTerms string) error {
+	fp := failpoints[name]
 	if fp == nil {
 		return ErrNoExist
 	}
 
-	t, err := newTerms(failpath, inTerms)
+	t, err := newTerms(name, inTerms)
 	if err != nil {
-		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", failpath, inTerms, err)
+		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", name, inTerms, err)
 		return err
 	}
 	fp.t = t
@@ -92,14 +92,14 @@ func enable(failpath, inTerms string) error {
 }
 
 // Disable stops a failpoint from firing.
-func Disable(failpath string) error {
+func Disable(name string) error {
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
-	return disable(failpath)
+	return disable(name)
 }
 
-func disable(failpath string) error {
-	fp := failpoints[failpath]
+func disable(name string) error {
+	fp := failpoints[name]
 	if fp == nil {
 		return ErrNoExist
 	}
@@ -147,11 +147,17 @@ func list() []string {
 	return ret
 }
 
-func register(failpath string, fp *Failpoint) {
+func register(name string) *Failpoint {
 	failpointsMu.Lock()
-	failpoints[failpath] = fp
-	failpointsMu.Unlock()
-	if t, ok := envTerms[failpath]; ok {
-		Enable(failpath, t)
+	defer failpointsMu.Unlock()
+	if _, ok := failpoints[name]; ok {
+		panic(fmt.Sprintf("failpoint name %s is already registered.", name))
 	}
+
+	fp := &Failpoint{}
+	failpoints[name] = fp
+	if t, ok := envTerms[name]; ok {
+		enable(name, t)
+	}
+	return fp
 }
