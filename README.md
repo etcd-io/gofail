@@ -56,7 +56,7 @@ After building with failpoints enabled, the program's failpoints can be activate
 From the command line, trigger the failpoint to set SomeFuncString to `hello`,
 
 ```sh
-GOFAIL_FAILPOINTS='my/package/path/SomeFuncString=return("hello")' ./cmd
+GOFAIL_FAILPOINTS='SomeFuncString=return("hello")' ./cmd
 ```
 
 Multiple failpoints are set by using ';' for a delimiter,
@@ -77,20 +77,19 @@ GOFAIL_HTTP="127.0.0.1:1234" ./cmd
 Activate a failpoint with curl,
 
 ```sh
-$ curl http://127.0.0.1:1234/my/package/path/SomeFuncString -XPUT -d'return("hello")'
+$ curl http://127.0.0.1:1234/SomeFuncString -XPUT -d'return("hello")'
 ```
 
 List the failpoints,
 
 ```sh
-$ curl http://127.0.0.1:1234/
-my/package/path/SomeFuncString=return("hello")
+$ curl http://127.0.0.1:1234/SomeFuncString=return("hello")
 ```
 
 Deactivate a failpoint,
 
 ```sh
-$ curl http://127.0.0.1:1234/my/package/path/SomeFuncString -XDELETE
+$ curl http://127.0.0.1:1234/SomeFuncString -XDELETE
 ```
 
 ### Unit tests
@@ -105,8 +104,8 @@ import (
 )
 
 func TestWhatever(t *testing.T) {
-	gofail.Enable("my/package/path/SomeFuncString", `return("hello")`)
-	defer gofail.Disable("my/package/path/SomeFuncString")
+	gofail.Enable("SomeFuncString", `return("hello")`)
+	defer gofail.Disable("SomeFuncString")
 	...
 }
 ```

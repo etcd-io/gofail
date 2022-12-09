@@ -17,7 +17,6 @@ package main
 
 import (
 	"fmt"
-	"go/build"
 	"io"
 	"os"
 	"path"
@@ -147,24 +146,7 @@ func writeBinding(file string, fps []*code.Failpoint) {
 	// XXX: support "package main"
 	pkgAbsDir := path.Dir(file)
 	pkg := path.Base(pkgAbsDir)
-	pkgDir := ""
-	for _, srcdir := range build.Default.SrcDirs() {
-		if strings.HasPrefix(pkgAbsDir, srcdir) {
-			pkgDir = strings.Replace(pkgAbsDir, srcdir, "", 1)
-			break
-		}
-	}
-	fppath := pkg
-	if pkgDir == "" {
-		fmt.Fprintf(
-			os.Stderr,
-			"missing package for %q; using %q as failpoint path\n",
-			pkgAbsDir,
-			pkg)
-	} else {
-		fppath = pkgDir[1:]
-	}
-	code.NewBinding(pkg, fppath, fps).Write(out)
+	code.NewBinding(pkg, fps).Write(out)
 	out.Close()
 }
 

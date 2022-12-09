@@ -45,7 +45,7 @@ There are two ways to trigger failpoints, which are static and dynamic ways.
 
 The static way is to set [gofail terms](#gofail-term) using environment variable `GOFAIL_FAILPOINTS` directly when starting your application. See example below,
 ```
-$ GOFAIL_FAILPOINTS='my/package/path/SomeFuncString=sleep("600s")' ./cmd
+$ GOFAIL_FAILPOINTS='SomeFuncString=sleep("600s")' ./cmd
 ```
 
 You can set multiple failpoints by using ";" as the delimiter,
@@ -58,7 +58,7 @@ and add [gofail terms](#gofail-term) via the endpoint afterwards. See example be
 ```
 $ GOFAIL_HTTP="127.0.0.1:22381" ./cmd
 
-$ curl http://127.0.0.1:22381/my/package/path/SomeFuncString -XPUT -d'sleep("600s")'
+$ curl http://127.0.0.1:22381/SomeFuncString -XPUT -d'sleep("600s")'
 ```
 
 Similarly, you can set multiple failpoints using endpoint `/failpoints`,
@@ -304,7 +304,7 @@ GOFAIL_FAILPOINTS='failpoint1=return("hello");failpoint2=sleep(10)' ./cmd
 
 When triggering the failpoint from the HTTP endpoint, only one failpoint can be configured in each HTTP request, for example,
 ```sh
-$ curl http://127.0.0.1:1234/my/package/path/SomeFuncString -XPUT -d'return("hello")'
+$ curl http://127.0.0.1:1234/SomeFuncString -XPUT -d'return("hello")'
 ```
 
 In above examples, `return("hello")` and `sleep(10)` are examples of terms. 

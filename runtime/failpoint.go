@@ -22,10 +22,8 @@ type Failpoint struct {
 	t *terms
 }
 
-func NewFailpoint(pkg, name string) *Failpoint {
-	fp := &Failpoint{}
-	register(pkg+"/"+name, fp)
-	return fp
+func NewFailpoint(name string) *Failpoint {
+	return register(name)
 }
 
 // Acquire gets evalutes the failpoint terms; if the failpoint
