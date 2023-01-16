@@ -6,6 +6,8 @@
   - [Step 1: Add failpoints](#step-1-add-failpoints)
   - [Step 2: Build your application with failpoints](#step-2-build-your-application-with-failpoints)
   - [Step 3: Trigger failpoints](#step-3-trigger-failpoints)
+    - [3.1: E2E test](#31-e2e-test)
+    - [3.2: Unit test](#32-unit-test)
 - **[Generated code](#generated-code)**
   - [Overview](#overview)
   - [Example 1: No customized code](#example-1-no-customized-code)
@@ -41,7 +43,8 @@ $ go get go.etcd.io/gofail/runtime
 Finally, build your application using command `go build`.
 
 ### Step 3: Trigger failpoints
-There are two ways to trigger failpoints, which are static and dynamic ways. 
+#### 3.1 E2E test
+There are two ways to trigger failpoints in E2E test, which are static and dynamic ways. 
 
 The static way is to set [gofail terms](#gofail-term) using environment variable `GOFAIL_FAILPOINTS` directly when starting your application. See example below,
 ```
@@ -64,6 +67,60 @@ $ curl http://127.0.0.1:22381/SomeFuncString -XPUT -d'sleep("600s")'
 Similarly, you can set multiple failpoints using endpoint `/failpoints`,
 ```
 curl http://127.0.0.1:22381/failpoints -X PUT -d'failpoint1=return("hello");failpoint2=sleep(10)'
+```
+
+#### 3.2 Unit test
+Assuming there is a function with failpoint something like below,
+```
+func DoSomething() error {
+    // gofail: var syscallError string
+    // return errors.New(syscallError)
+    if err := WhateverSyscall(); err != nil {
+        return err
+    }
+    ......
+    return nil
+}
+```
+
+If the go source file doesn't import package `errors`, you can intentionally add the import item like below,
+```
+import (
+    "errors"
+    ......
+)
+var _ = errors.New
+```
+
+You want to add a unit test to mimic an error the `WhateverSyscall` might return, the unit test case can be something like below,
+```
+import (
+    "testing"
+
+    gofail "go.etcd.io/gofail/runtime"
+)
+
+func TestDoSomething(t *testing.T) {
+    err := gofail.Enable("syscallError", `return("syscall somehow failed")`)
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer func() {
+        err = gofail.Disable("syscallError")
+        if err != nil {
+            t.Fatal(err)
+        }
+    }()
+
+    err = DoSomething()
+    if err == nil {
+        t.Fatal("Expected an error, but got nil")
+    }
+
+    if !strings.Contains(err.Error(), "syscall somehow failed") {
+        t.Fatalf("Unexpected error message: %v", err.Error())
+    }
+}
 ```
 
 ## Generated code
@@ -135,7 +192,7 @@ package examples
 
 import "go.etcd.io/gofail/runtime"
 
-var __fp_ExampleOneLine *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleOneLine")
+var __fp_ExampleOneLine *runtime.Failpoint = runtime.NewFailpoint("ExampleOneLine")
 ```
 
 In the following examples, only the corresponding generated entry is provided because they have the same file header, including comment, package clause and import declaration. 
@@ -179,7 +236,7 @@ func ExampleFunc() string {
 
 **Generated code**:
 ```
-var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString")
+var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("ExampleString")
 ```
 
 ### Example 3: With multiple lines of customized code
@@ -224,7 +281,7 @@ func ExampleFunc() string {
 
 **Generated code**:
 ```
-var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleString")
+var __fp_ExampleString *runtime.Failpoint = runtime.NewFailpoint("ExampleString")
 ```
 
 ### Example 4: With gofail label
@@ -293,7 +350,7 @@ func ExampleLabelsFunc() (s string) {
 
 **Generated code**:
 ```
-var __fp_ExampleLabels *runtime.Failpoint = runtime.NewFailpoint("examples", "ExampleLabels")
+var __fp_ExampleLabels *runtime.Failpoint = runtime.NewFailpoint("ExampleLabels")
 ```
 
 ## Gofail Term
