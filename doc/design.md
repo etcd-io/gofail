@@ -70,7 +70,7 @@ curl http://127.0.0.1:22381/failpoints -X PUT -d'failpoint1=return("hello");fail
 ```
 
 #### 3.2 Unit test
-Assuming there is a function with failpoint something like below,
+Assuming there is a function with a failpoint something like below,
 ```
 func DoSomething() error {
     // gofail: var syscallError string
@@ -384,7 +384,7 @@ Terms examples:
 return(100)        // always return 100
 return             // no value, return struct{}{} by default
 return()           // no value, return struct{}{} by default
-40.0%return(true)  // 40% possiblity to return `true`
+40.0%return(true)  // 40% possibility to return `true`
 1.0%panic          // 1% possiblity to panic
 sleep(10s)         // always sleep 10s
 sleep(10)          // always sleep 10ms (unit: millisecond by default)
