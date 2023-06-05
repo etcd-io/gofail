@@ -1,3 +1,4 @@
+---
 name: tests
 on:
   push:
@@ -18,9 +19,8 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.19
       - uses: actions/checkout@v3
       - name: tests
         run: |
           make test
-
