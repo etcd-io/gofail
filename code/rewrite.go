@@ -55,11 +55,10 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) ([]*Failpoint, error) {
 				}
 				curfp.code = append(curfp.code, strings.Replace(l, "//", "\t", 1))
 				continue
-			} else {
-				curfp.flush(dst)
-				fps = append(fps, curfp)
-				curfp = nil
 			}
+			curfp.flush(dst)
+			fps = append(fps, curfp)
+			curfp = nil
 		} else if label := gofailLabel(l, pfxGofail, labelGofail); label != "" {
 			// expose gofail label
 			l = label

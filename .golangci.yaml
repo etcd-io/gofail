@@ -24,6 +24,7 @@ linters:
     - goimports
     - ineffassign
     - nakedret
+    - revive
     - staticcheck
     - stylecheck
     - unused

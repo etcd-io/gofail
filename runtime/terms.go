@@ -289,7 +289,7 @@ var actMap = map[string]actFunc{
 
 func (t *term) do() interface{} { return t.act(t) }
 
-func actOff(t *term) interface{} { return nil }
+func actOff(_ *term) interface{} { return nil }
 
 func actReturn(t *term) interface{} { return t.val }
 
@@ -320,7 +320,7 @@ func actPanic(t *term) interface{} {
 	panic("failpoint panic: " + t.parent.fpath)
 }
 
-func actBreak(t *term) interface{} {
+func actBreak(_ *term) interface{} {
 	p, perr := exec.LookPath(os.Args[0])
 	if perr != nil {
 		panic(perr)
