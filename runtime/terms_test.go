@@ -35,12 +35,9 @@ func TestTermsString(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, w := range tt.weval {
-			v, eerr := ter.eval()
+			v := ter.eval()
 			if v == nil && w == "" {
 				continue
-			}
-			if eerr != nil {
-				t.Fatal(err)
 			}
 			if v.(string) != w {
 				t.Fatalf("got %q, expected %q", v, w)
@@ -65,7 +62,7 @@ func TestTermsTypes(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		v, _ := ter.eval()
+		v := ter.eval()
 		if v == nil && tt.weval == nil {
 			continue
 		}

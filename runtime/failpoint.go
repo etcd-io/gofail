@@ -35,11 +35,11 @@ func (fp *Failpoint) Acquire() (interface{}, error) {
 	if fp.t == nil {
 		return nil, ErrDisabled
 	}
-	v, err := fp.t.eval()
-	if v == nil {
-		err = ErrDisabled
+	result := fp.t.eval()
+	if result == nil {
+		return nil, ErrDisabled
 	}
-	return v, err
+	return result, nil
 }
 
 // BadType is called when the failpoint evaluates to the wrong type.

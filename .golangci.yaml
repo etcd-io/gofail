@@ -27,6 +27,8 @@ linters:
     - revive
     - staticcheck
     - stylecheck
+    - unconvert
+    - unparam
     - unused
 
 linters-settings: # please keep this alphabetized
