@@ -21,7 +21,9 @@ linters:
   # - deadcode
   # - structcheck
   # - varcheck
+    - goimports
     - ineffassign
+    - nakedret
     - staticcheck
     - stylecheck
     - unused
