@@ -30,8 +30,10 @@ const (
 
 // ToFailpoints turns all gofail comments into failpoint code. Returns a list of
 // all failpoints it activated.
-func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
+func ToFailpoints(wdst io.Writer, rsrc io.Reader) ([]*Failpoint, error) {
+	var err error
 	var curfp *Failpoint
+	var fps []*Failpoint
 
 	dst := bufio.NewWriter(wdst)
 	defer func() {
@@ -53,33 +55,35 @@ func ToFailpoints(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) 
 				}
 				curfp.code = append(curfp.code, strings.Replace(l, "//", "\t", 1))
 				continue
-			} else {
-				curfp.flush(dst)
-				fps = append(fps, curfp)
-				curfp = nil
 			}
+			curfp.flush(dst)
+			fps = append(fps, curfp)
+			curfp = nil
 		} else if label := gofailLabel(l, pfxGofail, labelGofail); label != "" {
 			// expose gofail label
 			l = label
 		} else if curfp, err = newFailpoint(l); err != nil {
-			return
+			return nil, err
 		} else if curfp != nil {
 			// found a new failpoint
 			continue
 		}
 		if _, err = dst.WriteString(l); err != nil {
-			return
+			return nil, err
 		}
 		if rerr == io.EOF {
 			break
 		}
 	}
-	return
+	return fps, err
 }
 
 // ToComments turns all failpoint code into GOFAIL comments. It returns
 // a list of all failpoints  it deactivated.
-func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
+func ToComments(wdst io.Writer, rsrc io.Reader) ([]*Failpoint, error) {
+	var err error
+	var fps []*Failpoint
+
 	src := bufio.NewReader(rsrc)
 	dst := bufio.NewWriter(wdst)
 	ws := ""
@@ -130,7 +134,7 @@ func ToComments(wdst io.Writer, rsrc io.Reader) (fps []*Failpoint, err error) {
 		err = nil
 	}
 	dst.Flush()
-	return
+	return fps, err
 }
 
 func gofailLabel(l string, pfx string, lb string) string {

@@ -34,12 +34,12 @@ func init() {
 	failpoints = make(map[string]*Failpoint)
 	envTerms = make(map[string]string)
 	if s := os.Getenv("GOFAIL_FAILPOINTS"); len(s) > 0 {
-		if fpMap, err := parseFailpoints(s); err != nil {
+		fpMap, err := parseFailpoints(s)
+		if err != nil {
 			fmt.Printf("fail to parse failpoint: %v\n", err)
 			os.Exit(1)
-		} else {
-			envTerms = fpMap
 		}
+		envTerms = fpMap
 	}
 	if s := os.Getenv("GOFAIL_HTTP"); len(s) > 0 {
 		if err := serve(s); err != nil {

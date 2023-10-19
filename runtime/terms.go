@@ -97,15 +97,15 @@ func newTerms(fpath, desc string) (*terms, error) {
 
 func (t *terms) String() string { return t.desc }
 
-func (t *terms) eval() (interface{}, error) {
+func (t *terms) eval() interface{} {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	for _, term := range t.chain {
 		if term.mods.allow() {
-			return term.do(), nil
+			return term.do()
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 // split terms from a -> b -> ... into [a, b, ...]
@@ -289,7 +289,7 @@ var actMap = map[string]actFunc{
 
 func (t *term) do() interface{} { return t.act(t) }
 
-func actOff(t *term) interface{} { return nil }
+func actOff(_ *term) interface{} { return nil }
 
 func actReturn(t *term) interface{} { return t.val }
 
@@ -320,7 +320,7 @@ func actPanic(t *term) interface{} {
 	panic("failpoint panic: " + t.parent.fpath)
 }
 
-func actBreak(t *term) interface{} {
+func actBreak(_ *term) interface{} {
 	p, perr := exec.LookPath(os.Args[0])
 	if perr != nil {
 		panic(perr)
