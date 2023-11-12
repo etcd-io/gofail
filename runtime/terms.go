@@ -41,6 +41,8 @@ type terms struct {
 
 	// mu protects the state of the terms chain
 	mu sync.Mutex
+	// tracks executions count of terms that are actually evaluated
+	counter int
 }
 
 // term is an executable unit of the failpoint terms chain
@@ -102,6 +104,7 @@ func (t *terms) eval() interface{} {
 	defer t.mu.Unlock()
 	for _, term := range t.chain {
 		if term.mods.allow() {
+			t.counter++
 			return term.do()
 		}
 	}

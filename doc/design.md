@@ -69,6 +69,16 @@ Similarly, you can set multiple failpoints using endpoint `/failpoints`,
 curl http://127.0.0.1:22381/failpoints -X PUT -d'failpoint1=return("hello");failpoint2=sleep(10)'
 ```
 
+You can get the execution count of a failpoint in the dynamic way,
+```
+$curl http://127.0.0.1:1234/SomeFuncString/count -XGET
+```
+
+To deactivate a failpoint,
+```
+$ curl http://127.0.0.1:1234/SomeFuncString -XDELETE
+```
+
 #### 3.2 Unit test
 Assuming there is a function with a failpoint something like below,
 ```

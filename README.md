@@ -86,6 +86,12 @@ List the failpoints,
 $ curl http://127.0.0.1:1234/SomeFuncString=return("hello")
 ```
 
+Retrieve the execution count of a failpoint,
+
+```sh
+$curl http://127.0.0.1:1234/SomeFuncString/count -XGET
+```
+
 Deactivate a failpoint,
 
 ```sh

@@ -15,11 +15,13 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -87,12 +89,24 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sort.Strings(fps)
 			lines := make([]string, len(fps))
 			for i := range lines {
-				s, _ := status(fps[i])
+				s, _, _ := status(fps[i])
 				lines[i] = fps[i] + "=" + s
 			}
 			w.Write([]byte(strings.Join(lines, "\n") + "\n"))
+		} else if strings.HasSuffix(key, "/count") {
+			fp := key[:len(key)-len("/count")]
+			_, count, err := status(fp)
+			if err != nil {
+				if errors.Is(err, ErrNoExist) {
+					http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
+				} else {
+					http.Error(w, "failed to GET: "+err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+			w.Write([]byte(strconv.Itoa(count)))
 		} else {
-			status, err := status(key)
+			status, _, err := status(key)
 			if err != nil {
 				http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
 			}
