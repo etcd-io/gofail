@@ -105,7 +105,7 @@ func (t *terms) eval() interface{} {
 	for _, term := range t.chain {
 		if term.mods.allow() {
 			t.counter++
-			return term.do(), nil
+			return term.do()
 		}
 	}
 	return nil

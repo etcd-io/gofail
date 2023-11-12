@@ -71,3 +71,44 @@ func TestTermsTypes(t *testing.T) {
 		}
 	}
 }
+
+func TestTermsCounter(t *testing.T) {
+	tests := []struct {
+		failpointTerm    string
+		runAfterEnabling int
+		wantCount        int
+	}{
+		{
+			failpointTerm:    `10*sleep(10)->1*return("abc")`,
+			runAfterEnabling: 12,
+			// Note the chain of terms is allowed to be executed 11 times at most,
+			// including 10 times for the first term `10*sleep(10)` and 1 time for
+			// the second term `1*return("abc")`. So it's only evaluated 11 times
+			// even it's triggered 12 times.
+			wantCount: 11,
+		},
+		{
+			failpointTerm:    `10*sleep(10)->1*return("abc")`,
+			runAfterEnabling: 3,
+			wantCount:        3,
+		},
+		{
+			failpointTerm:    `10*sleep(10)->1*return("abc")`,
+			runAfterEnabling: 0,
+			wantCount:        0,
+		},
+	}
+	for _, tt := range tests {
+		ter, err := newTerms("test", tt.failpointTerm)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i := 0; i < tt.runAfterEnabling; i++ {
+			_ = ter.eval()
+		}
+
+		if ter.counter != tt.wantCount {
+			t.Errorf("counter is not properly incremented, got: %d, want: %d", ter.counter, tt.wantCount)
+		}
+	}
+}

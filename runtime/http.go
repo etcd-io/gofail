@@ -15,6 +15,7 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -96,7 +97,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fp := key[:len(key)-len("/count")]
 			_, count, err := status(fp)
 			if err != nil {
-				if err == ErrNoExist {
+				if errors.Is(err, ErrNoExist) {
 					http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
 				} else {
 					http.Error(w, "failed to GET: "+err.Error(), http.StatusInternalServerError)
