@@ -16,10 +16,13 @@ package runtime
 
 import (
 	"fmt"
+	"sync"
 )
 
 type Failpoint struct {
 	t *terms
+
+	failpointMu sync.RWMutex
 }
 
 func NewFailpoint(name string) *Failpoint {
@@ -28,14 +31,19 @@ func NewFailpoint(name string) *Failpoint {
 
 // Acquire gets evalutes the failpoint terms; if the failpoint
 // is active, it will return a value. Otherwise, returns a non-nil error.
+//
+// Notice that during the exection of Acquire(), the failpoint can be disabled,
+// but the already in-flight execution won't be terminated
 func (fp *Failpoint) Acquire() (interface{}, error) {
-	failpointsMu.RLock()
-	defer failpointsMu.RUnlock()
+	fp.failpointMu.RLock()
+	// terms are locked during execution, so deepcopy is not required as no change can be made during execution
+	cachedT := fp.t
+	fp.failpointMu.RUnlock()
 
-	if fp.t == nil {
+	if cachedT == nil {
 		return nil, ErrDisabled
 	}
-	result := fp.t.eval()
+	result := cachedT.eval()
 	if result == nil {
 		return nil, ErrDisabled
 	}

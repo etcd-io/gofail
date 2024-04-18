@@ -86,6 +86,10 @@ func enable(name, inTerms string) error {
 		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", name, inTerms, err)
 		return err
 	}
+
+	fp.failpointMu.Lock()
+	defer fp.failpointMu.Unlock()
+
 	fp.t = t
 
 	return nil
@@ -104,6 +108,9 @@ func disable(name string) error {
 		return ErrNoExist
 	}
 
+	fp.failpointMu.Lock()
+	defer fp.failpointMu.Unlock()
+
 	if fp.t == nil {
 		return ErrDisabled
 	}
@@ -116,6 +123,7 @@ func disable(name string) error {
 func Status(failpath string) (string, int, error) {
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()
+
 	return status(failpath)
 }
 
@@ -124,6 +132,9 @@ func status(failpath string) (string, int, error) {
 	if fp == nil {
 		return "", 0, ErrNoExist
 	}
+
+	fp.failpointMu.RLock()
+	defer fp.failpointMu.RUnlock()
 
 	t := fp.t
 	if t == nil {
