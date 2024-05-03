@@ -72,11 +72,6 @@ func parseFailpoints(fps string) (map[string]string, error) {
 
 // Enable sets a failpoint to a given failpoint description.
 func Enable(name, inTerms string) error {
-	return enable(name, inTerms)
-}
-
-// enable enables a failpoint
-func enable(name, inTerms string) error {
 	failpointsMu.RLock()
 	fp := failpoints[name]
 	failpointsMu.RUnlock()
@@ -100,10 +95,6 @@ func enable(name, inTerms string) error {
 
 // Disable stops a failpoint from firing.
 func Disable(name string) error {
-	return disable(name)
-}
-
-func disable(name string) error {
 	failpointsMu.RLock()
 	fp := failpoints[name]
 	failpointsMu.RUnlock()
@@ -124,10 +115,6 @@ func disable(name string) error {
 
 // Status gives the current setting and execution count for the failpoint
 func Status(failpath string) (string, int, error) {
-	return status(failpath)
-}
-
-func status(failpath string) (string, int, error) {
 	failpointsMu.RLock()
 	fp := failpoints[failpath]
 	failpointsMu.RUnlock()
@@ -171,7 +158,7 @@ func register(name string) *Failpoint {
 	failpoints[name] = fp
 	failpointsMu.Unlock()
 	if t, ok := envTerms[name]; ok {
-		enable(name, t)
+		Enable(name, t)
 	}
 	return fp
 }

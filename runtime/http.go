@@ -72,7 +72,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for k, v := range fpMap {
-			if err := enable(k, v); err != nil {
+			if err := Enable(k, v); err != nil {
 				http.Error(w, fmt.Sprintf("fail to set failpoint: %v", err), http.StatusBadRequest)
 				return
 			}
@@ -86,13 +86,13 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sort.Strings(fps)
 			lines := make([]string, len(fps))
 			for i := range lines {
-				s, _, _ := status(fps[i])
+				s, _, _ := Status(fps[i])
 				lines[i] = fps[i] + "=" + s
 			}
 			w.Write([]byte(strings.Join(lines, "\n") + "\n"))
 		} else if strings.HasSuffix(key, "/count") {
 			fp := key[:len(key)-len("/count")]
-			_, count, err := status(fp)
+			_, count, err := Status(fp)
 			if err != nil {
 				if errors.Is(err, ErrNoExist) {
 					http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
@@ -103,7 +103,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Write([]byte(strconv.Itoa(count)))
 		} else {
-			status, _, err := status(key)
+			status, _, err := Status(key)
 			if err != nil {
 				http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
 			}
@@ -112,7 +112,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// deactivates a failpoint
 	case r.Method == "DELETE":
-		if err := disable(key); err != nil {
+		if err := Disable(key); err != nil {
 			http.Error(w, "failed to delete failpoint "+err.Error(), http.StatusBadRequest)
 			return
 		}
