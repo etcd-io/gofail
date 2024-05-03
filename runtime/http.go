@@ -37,14 +37,11 @@ func serve(host string) error {
 }
 
 func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// This prevents all failpoints from being triggered. It ensures
-	// the server(runtime) doesn't panic due to any failpoints during
-	// processing the HTTP request.
-	// It may be inefficient, but correctness is more important than
-	// efficiency. Usually users will not enable too many failpoints
-	// at a time, so it (the efficiency) isn't a problem.
-	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
+	// Ensures the server(runtime) doesn't panic due to the execution of
+	// panic failpoints during processing of the HTTP request
+	panicMu.Lock()
+	defer panicMu.Unlock()
+
 	// flush before unlocking so a panic failpoint won't
 	// take down the http server before it sends the response
 	defer flush(w)

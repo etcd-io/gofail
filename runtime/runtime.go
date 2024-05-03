@@ -27,7 +27,10 @@ var (
 
 	failpoints   map[string]*Failpoint
 	failpointsMu sync.RWMutex
-	envTerms     map[string]string
+
+	envTerms map[string]string
+
+	panicMu sync.Mutex
 )
 
 func init() {
