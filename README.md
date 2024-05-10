@@ -34,10 +34,10 @@ The translated code looks something like,
 
 ```go
 func someFunc() string {
-        if vSomeFuncString, __fpErr := __fp_SomeFuncString.Acquire(); __fpErr == nil { SomeFuncString, __fpTypeOK := vSomeFuncString.(string); if !__fpTypeOK { goto __badTypeSomeFuncString}
-		// this is called when the failpoint is triggered
-		return SomeFuncString; __badTypeSomeFuncString: __fp_SomeFuncString.BadType(vSomeFuncString, "string"); };
-        return "default"
+	if vSomeFuncString, __fpErr := __fp_SomeFuncString.Acquire(); __fpErr == nil { SomeFuncString, __fpTypeOK := vSomeFuncString.(string); if !__fpTypeOK { goto __badTypeSomeFuncString} 
+		 // this is called when the failpoint is triggered
+		 return SomeFuncString; goto __nomockSomeFuncString; __badTypeSomeFuncString: __fp_SomeFuncString.BadType(vSomeFuncString, "string"); __nomockSomeFuncString: };
+	return "default"
 }
 ```
 
