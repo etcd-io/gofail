@@ -20,8 +20,7 @@ import (
 )
 
 type Failpoint struct {
-	t *terms
-
+	t           *terms
 	failpointMu sync.RWMutex
 }
 
@@ -53,4 +52,35 @@ func (fp *Failpoint) Acquire() (interface{}, error) {
 // BadType is called when the failpoint evaluates to the wrong type.
 func (fp *Failpoint) BadType(v interface{}, t string) {
 	fmt.Printf("failpoint: %q got value %v of type \"%T\" but expected type %q\n", fp.t.fpath, v, v, t)
+}
+
+func (fp *Failpoint) SetTerm(t *terms) {
+	fp.failpointMu.Lock()
+	defer fp.failpointMu.Unlock()
+
+	fp.t = t
+}
+
+func (fp *Failpoint) ClearTerm() error {
+	fp.failpointMu.Lock()
+	defer fp.failpointMu.Unlock()
+
+	if fp.t == nil {
+		return ErrDisabled
+	}
+	fp.t = nil
+
+	return nil
+}
+
+func (fp *Failpoint) Status() (string, int, error) {
+	fp.failpointMu.RLock()
+	defer fp.failpointMu.RUnlock()
+
+	t := fp.t
+	if t == nil {
+		return "", 0, ErrDisabled
+	}
+
+	return t.desc, t.counter, nil
 }

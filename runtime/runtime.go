@@ -85,10 +85,7 @@ func Enable(name, inTerms string) error {
 		return err
 	}
 
-	fp.failpointMu.Lock()
-	defer fp.failpointMu.Unlock()
-
-	fp.t = t
+	fp.SetTerm(t)
 
 	return nil
 }
@@ -102,15 +99,7 @@ func Disable(name string) error {
 		return ErrNoExist
 	}
 
-	fp.failpointMu.Lock()
-	defer fp.failpointMu.Unlock()
-
-	if fp.t == nil {
-		return ErrDisabled
-	}
-	fp.t = nil
-
-	return nil
+	return fp.ClearTerm()
 }
 
 // Status gives the current setting and execution count for the failpoint
@@ -122,15 +111,7 @@ func Status(failpath string) (string, int, error) {
 		return "", 0, ErrNoExist
 	}
 
-	fp.failpointMu.RLock()
-	defer fp.failpointMu.RUnlock()
-
-	t := fp.t
-	if t == nil {
-		return "", 0, ErrDisabled
-	}
-
-	return t.desc, t.counter, nil
+	return fp.Status()
 }
 
 func List() []string {
