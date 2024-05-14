@@ -174,7 +174,7 @@ func ExampleOneLineFunc() string {
 **Translated code**:
 ```
 func ExampleOneLineFunc() string {
-	if vExampleOneLine, __fpErr := __fp_ExampleOneLine.Acquire(); __fpErr == nil { _, __fpTypeOK := vExampleOneLine.(struct{}); if !__fpTypeOK { goto __badTypeExampleOneLine} ; __badTypeExampleOneLine: __fp_ExampleOneLine.BadType(vExampleOneLine, "struct{}"); };
+	if vExampleOneLine, __fpErr := __fp_ExampleOneLine.Acquire(); __fpErr == nil { _, __fpTypeOK := vExampleOneLine.(struct{}); if !__fpTypeOK { goto __badTypeExampleOneLine} ; goto __nomockExampleOneLine; __badTypeExampleOneLine: __fp_ExampleOneLine.BadType(vExampleOneLine, "struct{}"); __nomockExampleOneLine: };
 	return "abc"
 }
 ```
@@ -187,8 +187,10 @@ func ExampleOneLineFunc() string {
 		if !__fpTypeOK {
 			goto __badTypeExampleOneLine
 		}
+		goto __nomockExampleOneLine
 	__badTypeExampleOneLine:
 		__fp_ExampleOneLine.BadType(vExampleOneLine, "struct{}")
+	__nomockExampleOneLine:
 	}
 	return "abc"
 }
@@ -223,7 +225,7 @@ The code `return ExampleString` is the customized code.
 ```
 func ExampleFunc() string {
 	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
-		 return ExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); };
+		 return ExampleString; goto __nomockExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); __nomockExampleString: };
 	return "example"
 }
 ```
@@ -237,8 +239,10 @@ func ExampleFunc() string {
 			goto __badTypeExampleString
 		}
 		return ExampleString
+		goto __nomockExampleString
 	__badTypeExampleString:
 		__fp_ExampleString.BadType(vExampleString, "string")
+	__nomockExampleString:
 	}
 	return "example"
 }
@@ -267,7 +271,7 @@ There are two lines of customized code: `ExampleString = "Hello, " + ExampleStri
 func ExampleFunc() string {
 	if vExampleString, __fpErr := __fp_ExampleString.Acquire(); __fpErr == nil { ExampleString, __fpTypeOK := vExampleString.(string); if !__fpTypeOK { goto __badTypeExampleString} 
 		 ExampleString = "Hello, " + ExampleString
-		 return ExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); };
+		 return ExampleString; goto __nomockExampleString; __badTypeExampleString: __fp_ExampleString.BadType(vExampleString, "string"); __nomockExampleString: };
 	return "example"
 }
 ```
@@ -282,8 +286,10 @@ func ExampleFunc() string {
 		}
 		ExampleString = "Hello, " + ExampleString
 		return ExampleString
+		goto __nomockExampleString
 	__badTypeExampleString:
 		__fp_ExampleString.BadType(vExampleString, "string")
+	__nomockExampleString:
 	}
 	return "example"
 }
@@ -326,7 +332,7 @@ func ExampleLabelsFunc() (s string) {
 		for j := 0; j < 5; j++ {
 			s = s + "j"
 			if vExampleLabels, __fpErr := __fp_ExampleLabels.Acquire(); __fpErr == nil { _, __fpTypeOK := vExampleLabels.(struct{}); if !__fpTypeOK { goto __badTypeExampleLabels} 
-				 continue myLabel; __badTypeExampleLabels: __fp_ExampleLabels.BadType(vExampleLabels, "struct{}"); };
+				 continue myLabel; goto __nomockExampleLabels; __badTypeExampleLabels: __fp_ExampleLabels.BadType(vExampleLabels, "struct{}"); __nomockExampleLabels: };
 		}
 	}
 	return s
@@ -349,8 +355,10 @@ func ExampleLabelsFunc() (s string) {
 					goto __badTypeExampleLabels
 				}
 				continue myLabel
+				goto __nomockExampleLabels
 			__badTypeExampleLabels:
 				__fp_ExampleLabels.BadType(vExampleLabels, "struct{}")
+			__nomockExampleLabels:
 			}
 		}
 	}

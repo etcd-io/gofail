@@ -21,20 +21,61 @@ import (
 )
 
 var examples = []struct {
-	code string
-	wfps int
+	code                  string
+	expectedGeneratedCode string
+	wfps                  int
 }{
-	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}", 1},
-	{"func f() {\n\t\t// gofail: var Test int\n\t\t// \tfmt.Println(Test)\n}", 1},
-	{"func f() {\n// gofail: var Test int\n// \tfmt.Println(Test)\n}", 1},
-	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}\n", 1},
-	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)// return\n}\n", 1},
-	{"func f() {\n\t// gofail: var OneLineTest int\n}\n", 1},
-	{"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n\n\t// gofail: var Test2 int\n\t// fmt.Println(Test2)\n}\n", 2},
-	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n}\n", 1},
-	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n}\n", 1},
-	{"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n\t// fmt.Println(`bye`)\n}\n", 1},
-	{`
+	{
+		"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}",
+		"func f() {\n\tif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t\t fmt.Println(Test); goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n}",
+		1,
+	},
+	{
+		"func f() {\n\t\t// gofail: var Test int\n\t\t// \tfmt.Println(Test)\n}",
+		"func f() {\n\t\tif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t\t\t \tfmt.Println(Test); goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n}",
+		1,
+	},
+	{
+		"func f() {\n// gofail: var Test int\n// \tfmt.Println(Test)\n}",
+		"func f() {\nif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t \tfmt.Println(Test); goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n}",
+		1,
+	},
+	{
+		"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n}\n",
+		"func f() {\n\tif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t\t fmt.Println(Test); goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n}\n",
+		1},
+	{
+		"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)// return\n}\n",
+		"func f() {\n\tif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t\t fmt.Println(Test)// return; goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n}\n",
+		1,
+	},
+	{
+		"func f() {\n\t// gofail: var OneLineTest int\n}\n",
+		"func f() {\n\tif vOneLineTest, __fpErr := __fp_OneLineTest.Acquire(); __fpErr == nil { _, __fpTypeOK := vOneLineTest.(int); if !__fpTypeOK { goto __badTypeOneLineTest} ; goto __nomockOneLineTest; __badTypeOneLineTest: __fp_OneLineTest.BadType(vOneLineTest, \"int\"); __nomockOneLineTest: };\n}\n",
+		1,
+	},
+	{
+		"func f() {\n\t// gofail: var Test int\n\t// fmt.Println(Test)\n\n\t// gofail: var Test2 int\n\t// fmt.Println(Test2)\n}\n",
+		"func f() {\n\tif vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil { Test, __fpTypeOK := vTest.(int); if !__fpTypeOK { goto __badTypeTest} \n\t\t fmt.Println(Test); goto __nomockTest; __badTypeTest: __fp_Test.BadType(vTest, \"int\"); __nomockTest: };\n\n\tif vTest2, __fpErr := __fp_Test2.Acquire(); __fpErr == nil { Test2, __fpTypeOK := vTest2.(int); if !__fpTypeOK { goto __badTypeTest2} \n\t\t fmt.Println(Test2); goto __nomockTest2; __badTypeTest2: __fp_Test2.BadType(vTest2, \"int\"); __nomockTest2: };\n}\n",
+		2,
+	},
+	{
+		"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n}\n",
+		"func f() {\n\tif vNoTypeTest, __fpErr := __fp_NoTypeTest.Acquire(); __fpErr == nil { _, __fpTypeOK := vNoTypeTest.(struct{}); if !__fpTypeOK { goto __badTypeNoTypeTest} \n\t\t fmt.Println(`hi`); goto __nomockNoTypeTest; __badTypeNoTypeTest: __fp_NoTypeTest.BadType(vNoTypeTest, \"struct{}\"); __nomockNoTypeTest: };\n}\n",
+		1,
+	},
+	{
+		"func f() {\n\t// gofail: var NoTypeTest struct{}\n}\n",
+		"func f() {\n\tif vNoTypeTest, __fpErr := __fp_NoTypeTest.Acquire(); __fpErr == nil { _, __fpTypeOK := vNoTypeTest.(struct{}); if !__fpTypeOK { goto __badTypeNoTypeTest} ; goto __nomockNoTypeTest; __badTypeNoTypeTest: __fp_NoTypeTest.BadType(vNoTypeTest, \"struct{}\"); __nomockNoTypeTest: };\n}\n",
+		1,
+	},
+	{
+		"func f() {\n\t// gofail: var NoTypeTest struct{}\n\t// fmt.Println(`hi`)\n\t// fmt.Println(`bye`)\n}\n",
+		"func f() {\n\tif vNoTypeTest, __fpErr := __fp_NoTypeTest.Acquire(); __fpErr == nil { _, __fpTypeOK := vNoTypeTest.(struct{}); if !__fpTypeOK { goto __badTypeNoTypeTest} \n\t\t fmt.Println(`hi`)\n\t\t fmt.Println(`bye`); goto __nomockNoTypeTest; __badTypeNoTypeTest: __fp_NoTypeTest.BadType(vNoTypeTest, \"struct{}\"); __nomockNoTypeTest: };\n}\n",
+		1,
+	},
+	{
+		`
 func f() {
 	// gofail: labelTest:
 	for {
@@ -45,7 +86,10 @@ func f() {
 		}
 	}
 }
-`, 1},
+`,
+		"\nfunc f() {\n\t/* gofail-label */ labelTest:\n\tfor {\n\t\tif g() {\n\t\t\tif vtestLabel, __fpErr := __fp_testLabel.Acquire(); __fpErr == nil { _, __fpTypeOK := vtestLabel.(struct{}); if !__fpTypeOK { goto __badTypetestLabel} \n\t\t\t\t continue labelTest; goto __nomocktestLabel; __badTypetestLabel: __fp_testLabel.BadType(vtestLabel, \"struct{}\"); __nomocktestLabel: };\n\t\t\treturn\n\t\t}\n\t}\n}\n",
+		1,
+	},
 }
 
 func TestToFailpoint(t *testing.T) {
@@ -62,6 +106,9 @@ func TestToFailpoint(t *testing.T) {
 		dstOut := dst.String()
 		if len(strings.Split(dstOut, "\n")) != len(strings.Split(ex.code, "\n")) {
 			t.Fatalf("%d: bad line count %q", i, dstOut)
+		}
+		if ex.expectedGeneratedCode != dstOut {
+			t.Fatalf("expected generated code and actual generated code differs:\nExpected:\n%q\n\nActual:\n%q", ex.expectedGeneratedCode, dstOut)
 		}
 	}
 }
@@ -90,5 +137,4 @@ func TestToComment(t *testing.T) {
 			t.Fatalf("%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
 		}
 	}
-
 }
