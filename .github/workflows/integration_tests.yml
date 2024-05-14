@@ -1,0 +1,27 @@
+---
+name: Integration Tests
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - id: goversion
+        run: echo "goversion=$(cat .go-version)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version: ${{ steps.goversion.outputs.goversion }}
+      - uses: actions/checkout@v4
+      - name: tests
+        run: |
+          make run-all-integration-tests
