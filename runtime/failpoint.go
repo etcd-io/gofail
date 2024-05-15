@@ -20,8 +20,8 @@ import (
 )
 
 type Failpoint struct {
-	t           *terms
-	failpointMu sync.RWMutex
+	t   *terms
+	mux sync.RWMutex
 }
 
 func NewFailpoint(name string) *Failpoint {
@@ -34,10 +34,10 @@ func NewFailpoint(name string) *Failpoint {
 // Notice that during the exection of Acquire(), the failpoint can be disabled,
 // but the already in-flight execution won't be terminated
 func (fp *Failpoint) Acquire() (interface{}, error) {
-	fp.failpointMu.RLock()
+	fp.mux.RLock()
 	// terms are locked during execution, so deepcopy is not required as no change can be made during execution
 	cachedT := fp.t
-	fp.failpointMu.RUnlock()
+	fp.mux.RUnlock()
 
 	if cachedT == nil {
 		return nil, ErrDisabled
@@ -55,15 +55,15 @@ func (fp *Failpoint) BadType(v interface{}, t string) {
 }
 
 func (fp *Failpoint) SetTerm(t *terms) {
-	fp.failpointMu.Lock()
-	defer fp.failpointMu.Unlock()
+	fp.mux.Lock()
+	defer fp.mux.Unlock()
 
 	fp.t = t
 }
 
 func (fp *Failpoint) ClearTerm() error {
-	fp.failpointMu.Lock()
-	defer fp.failpointMu.Unlock()
+	fp.mux.Lock()
+	defer fp.mux.Unlock()
 
 	if fp.t == nil {
 		return ErrDisabled
@@ -74,8 +74,8 @@ func (fp *Failpoint) ClearTerm() error {
 }
 
 func (fp *Failpoint) Status() (string, int, error) {
-	fp.failpointMu.RLock()
-	defer fp.failpointMu.RUnlock()
+	fp.mux.RLock()
+	defer fp.mux.RUnlock()
 
 	t := fp.t
 	if t == nil {
