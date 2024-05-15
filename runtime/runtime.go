@@ -25,11 +25,17 @@ var (
 	ErrNoExist  = fmt.Errorf("failpoint: failpoint does not exist")
 	ErrDisabled = fmt.Errorf("failpoint: failpoint is disabled")
 
-	failpoints   map[string]*Failpoint
+	failpoints map[string]*Failpoint
+	// failpointsMu protects the failpoints map, preventing concurrent
+	// accesses during commands such as Enabling and Disabling
 	failpointsMu sync.RWMutex
 
 	envTerms map[string]string
 
+	// panicMu (panic mutex) ensures that the action of panic failpoints
+	// and serving of the HTTP requests won't be executed at the same time,
+	// avoiding the possibility that the server runtime panics during processing
+	// requests
 	panicMu sync.Mutex
 )
 

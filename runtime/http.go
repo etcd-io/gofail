@@ -38,7 +38,9 @@ func serve(host string) error {
 
 func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Ensures the server(runtime) doesn't panic due to the execution of
-	// panic failpoints during processing of the HTTP request
+	// panic failpoints during processing of the HTTP request, as the
+	// sender of the HTTP request should not be affected by the execution
+	// of the panic failpoints and crash as a side effect
 	panicMu.Lock()
 	defer panicMu.Unlock()
 
