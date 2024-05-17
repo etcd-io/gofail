@@ -37,14 +37,13 @@ func serve(host string) error {
 }
 
 func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// This prevents all failpoints from being triggered. It ensures
-	// the server(runtime) doesn't panic due to any failpoints during
-	// processing the HTTP request.
-	// It may be inefficient, but correctness is more important than
-	// efficiency. Usually users will not enable too many failpoints
-	// at a time, so it (the efficiency) isn't a problem.
-	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
+	// Ensures the server(runtime) doesn't panic due to the execution of
+	// panic failpoints during processing of the HTTP request, as the
+	// sender of the HTTP request should not be affected by the execution
+	// of the panic failpoints and crash as a side effect
+	panicMu.Lock()
+	defer panicMu.Unlock()
+
 	// flush before unlocking so a panic failpoint won't
 	// take down the http server before it sends the response
 	defer flush(w)
@@ -75,7 +74,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for k, v := range fpMap {
-			if err := enable(k, v); err != nil {
+			if err := Enable(k, v); err != nil {
 				http.Error(w, fmt.Sprintf("fail to set failpoint: %v", err), http.StatusBadRequest)
 				return
 			}
@@ -89,13 +88,13 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sort.Strings(fps)
 			lines := make([]string, len(fps))
 			for i := range lines {
-				s, _, _ := status(fps[i])
+				s, _, _ := Status(fps[i])
 				lines[i] = fps[i] + "=" + s
 			}
 			w.Write([]byte(strings.Join(lines, "\n") + "\n"))
 		} else if strings.HasSuffix(key, "/count") {
 			fp := key[:len(key)-len("/count")]
-			_, count, err := status(fp)
+			_, count, err := Status(fp)
 			if err != nil {
 				if errors.Is(err, ErrNoExist) {
 					http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
@@ -106,7 +105,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Write([]byte(strconv.Itoa(count)))
 		} else {
-			status, _, err := status(key)
+			status, _, err := Status(key)
 			if err != nil {
 				http.Error(w, "failed to GET: "+err.Error(), http.StatusNotFound)
 			}
@@ -115,7 +114,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// deactivates a failpoint
 	case r.Method == "DELETE":
-		if err := disable(key); err != nil {
+		if err := Disable(key); err != nil {
 			http.Error(w, "failed to delete failpoint "+err.Error(), http.StatusBadRequest)
 			return
 		}

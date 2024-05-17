@@ -25,9 +25,18 @@ var (
 	ErrNoExist  = fmt.Errorf("failpoint: failpoint does not exist")
 	ErrDisabled = fmt.Errorf("failpoint: failpoint is disabled")
 
-	failpoints   map[string]*Failpoint
+	failpoints map[string]*Failpoint
+	// failpointsMu protects the failpoints map, preventing concurrent
+	// accesses during commands such as Enabling and Disabling
 	failpointsMu sync.RWMutex
-	envTerms     map[string]string
+
+	envTerms map[string]string
+
+	// panicMu (panic mutex) ensures that the action of panic failpoints
+	// and serving of the HTTP requests won't be executed at the same time,
+	// avoiding the possibility that the server runtime panics during processing
+	// requests
+	panicMu sync.Mutex
 )
 
 func init() {
@@ -69,14 +78,9 @@ func parseFailpoints(fps string) (map[string]string, error) {
 
 // Enable sets a failpoint to a given failpoint description.
 func Enable(name, inTerms string) error {
-	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
-	return enable(name, inTerms)
-}
-
-// enable enables a failpoint
-func enable(name, inTerms string) error {
+	failpointsMu.RLock()
 	fp := failpoints[name]
+	failpointsMu.RUnlock()
 	if fp == nil {
 		return ErrNoExist
 	}
@@ -86,51 +90,34 @@ func enable(name, inTerms string) error {
 		fmt.Printf("failed to enable \"%s=%s\" (%v)\n", name, inTerms, err)
 		return err
 	}
-	fp.t = t
+
+	fp.SetTerm(t)
 
 	return nil
 }
 
 // Disable stops a failpoint from firing.
 func Disable(name string) error {
-	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
-	return disable(name)
-}
-
-func disable(name string) error {
+	failpointsMu.RLock()
 	fp := failpoints[name]
+	failpointsMu.RUnlock()
 	if fp == nil {
 		return ErrNoExist
 	}
 
-	if fp.t == nil {
-		return ErrDisabled
-	}
-	fp.t = nil
-
-	return nil
+	return fp.ClearTerm()
 }
 
 // Status gives the current setting and execution count for the failpoint
 func Status(failpath string) (string, int, error) {
-	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
-	return status(failpath)
-}
-
-func status(failpath string) (string, int, error) {
+	failpointsMu.RLock()
 	fp := failpoints[failpath]
+	failpointsMu.RUnlock()
 	if fp == nil {
 		return "", 0, ErrNoExist
 	}
 
-	t := fp.t
-	if t == nil {
-		return "", 0, ErrDisabled
-	}
-
-	return t.desc, t.counter, nil
+	return fp.Status()
 }
 
 func List() []string {
@@ -149,15 +136,16 @@ func list() []string {
 
 func register(name string) *Failpoint {
 	failpointsMu.Lock()
-	defer failpointsMu.Unlock()
 	if _, ok := failpoints[name]; ok {
+		failpointsMu.Unlock()
 		panic(fmt.Sprintf("failpoint name %s is already registered.", name))
 	}
 
 	fp := &Failpoint{}
 	failpoints[name] = fp
+	failpointsMu.Unlock()
 	if t, ok := envTerms[name]; ok {
-		enable(name, t)
+		Enable(name, t)
 	}
 	return fp
 }

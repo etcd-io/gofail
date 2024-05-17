@@ -317,6 +317,9 @@ func actSleep(t *term) interface{} {
 }
 
 func actPanic(t *term) interface{} {
+	panicMu.Lock()
+	defer panicMu.Unlock()
+
 	if t.val != nil {
 		panic(fmt.Sprintf("failpoint panic: %v", t.val))
 	}
