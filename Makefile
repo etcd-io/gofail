@@ -1,4 +1,5 @@
 SRCS=$(filter-out %_test.go, $(wildcard *.go */*.go))
+include integration/makefile.mk
 
 .PHONY: all
 all: gofail
