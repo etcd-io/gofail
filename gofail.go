@@ -31,7 +31,7 @@ var (
 	// Git SHA Value will be set during build
 	GitSHA = "Not provided (use ./build.sh instead of go build)"
 
-	Version = "0.1.0"
+	Version = "0.2.0"
 )
 
 var usageLine = `Usage:
