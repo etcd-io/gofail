@@ -2,10 +2,15 @@ Note that we start to track changes starting from 2022.
 
 <hr>
 
-## v0.2.0 (TBD)
-
+## v0.3.0 (TBD)
 
 <hr>
+
+## v0.2.0 (2024-06-19)
+
+- [Add integration tests for gofail](https://github.com/etcd-io/gofail/pull/69)
+- [Avoid __badType label being executed when the failpoint execution flow is not diverted and the type conversion is successful](https://github.com/etcd-io/gofail/pull/66)
+- [Fix execution of failpoint should not block deactivation](https://github.com/etcd-io/gofail/pull/65)
 
 ## v0.1.0 (2022-12-10)
 
