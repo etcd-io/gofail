@@ -8,6 +8,7 @@ all: gofail
 clean:
 	rm -f gofail
 
+.PHONY: verify
 verify: verify-gofmt
 
 .PHONY: verify-gofmt
@@ -19,12 +20,13 @@ verify-gofmt:
 test:
 	go test -v --race -cpu=1,2,4 ./code/ ./runtime/
 
+.PHONY: fix
 fix: fix-gofmt
 
 .PHONY: fix-gofmt
 fix-gofmt:
 	gofmt -w .
 
-gofail: 
+gofail:
 	GO_BUILD_FLAGS="-v" ./build.sh
 	./gofail --version
