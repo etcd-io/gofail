@@ -27,16 +27,18 @@ GOFAIL_HTTP=:22381 go run cmd.go
 curl -L http://localhost:22381
 
 curl \
-  -L http://localhost:22381/github.com/coreos/gofail/examples/ExampleLabels \
+  -L http://localhost:22381/ExampleLabels \
   -X PUT -d'return'
 
 curl \
-  -L http://localhost:22381/github.com/coreos/gofail/examples/ExampleLabels \
+  -L http://localhost:22381/ExampleLabels \
   -X DELETE
 */
 
 func main() {
 	for {
+		log.Println(examples.ExampleFunc())
+		log.Println(examples.ExampleOneLineFunc())
 		log.Println(examples.ExampleLabelsFunc())
 		time.Sleep(time.Second)
 	}
