@@ -111,9 +111,9 @@ func TestParseFailpoints(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			fpsMap, err := parseFailpoints(tc.fps)
 
-			require.Equal(t, tc.expectErr, err != nil, "Unexpected result, tc.expectErr: %t, err: %v", tc.expectedFpsMap, err)
+			require.Equalf(t, tc.expectErr, err != nil, "Unexpected result, tc.expectErr: %t, err: %v", tc.expectedFpsMap, err)
 
-			require.Equal(t, tc.expectedFpsMap, fpsMap, "Unexpected result, expected: %v, got: %v", tc.expectedFpsMap, fpsMap)
+			require.Equalf(t, tc.expectedFpsMap, fpsMap, "Unexpected result, expected: %v, got: %v", tc.expectedFpsMap, fpsMap)
 		})
 	}
 }

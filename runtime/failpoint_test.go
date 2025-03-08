@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFailpointCreateAndAcquire(t *testing.T) {
@@ -31,7 +32,7 @@ func TestFailpointCreateAndAcquire(t *testing.T) {
 	assert.Equal(t, envTerms[name], fp1.t.desc)
 
 	v, err := fp1.Acquire()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	intv := v.(int)
 	assert.Equal(t, 1, intv)

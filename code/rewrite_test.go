@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var examples = []struct {
@@ -97,19 +99,11 @@ func TestToFailpoint(t *testing.T) {
 		dst := bytes.NewBuffer(make([]byte, 0, 1024))
 		src := strings.NewReader(ex.code)
 		fps, err := ToFailpoints(dst, src)
-		if err != nil {
-			t.Fatalf("%d: %v", i, err)
-		}
-		if len(fps) != ex.wfps {
-			t.Fatalf("%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
-		}
+		require.NoErrorf(t, err, "%d: %v", i, err)
+		require.Equalf(t, len(fps), ex.wfps, "%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
 		dstOut := dst.String()
-		if len(strings.Split(dstOut, "\n")) != len(strings.Split(ex.code, "\n")) {
-			t.Fatalf("%d: bad line count %q", i, dstOut)
-		}
-		if ex.expectedGeneratedCode != dstOut {
-			t.Fatalf("expected generated code and actual generated code differs:\nExpected:\n%q\n\nActual:\n%q", ex.expectedGeneratedCode, dstOut)
-		}
+		require.Lenf(t, strings.Split(ex.code, "\n"), len(strings.Split(dstOut, "\n")), "%d: bad line count %q", i, dstOut)
+		require.Equalf(t, ex.expectedGeneratedCode, dstOut, "expected generated code and actual generated code differs:\nExpected:\n%q\n\nActual:\n%q", ex.expectedGeneratedCode, dstOut)
 	}
 }
 
@@ -118,23 +112,15 @@ func TestToComment(t *testing.T) {
 		dst := bytes.NewBuffer(make([]byte, 0, 1024))
 		src := strings.NewReader(ex.code)
 		_, err := ToFailpoints(dst, src)
-		if err != nil {
-			t.Fatalf("%d: %v", i, err)
-		}
+		require.NoErrorf(t, err, "%d: %v", i, err)
 
 		src = strings.NewReader(dst.String())
 		dst.Reset()
 		fps, err := ToComments(dst, src)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoErrorf(t, err, "unexpected error: %v", err)
 		plainCode := dst.String()
 
-		if plainCode != ex.code {
-			t.Fatalf("%d: non-preserving ToComments(); got %q, want %q", i, plainCode, ex.code)
-		}
-		if len(fps) != ex.wfps {
-			t.Fatalf("%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
-		}
+		require.Equalf(t, plainCode, ex.code, "%d: non-preserving ToComments(); got %q, want %q", i, plainCode, ex.code)
+		require.Equalf(t, len(fps), ex.wfps, "%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
 	}
 }
