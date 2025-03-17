@@ -17,6 +17,9 @@ package runtime
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTermsString(t *testing.T) {
@@ -31,17 +34,13 @@ func TestTermsString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ter, err := newTerms("test", tt.desc)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		for _, w := range tt.weval {
 			v := ter.eval()
 			if v == nil && w == "" {
 				continue
 			}
-			if v.(string) != w {
-				t.Fatalf("got %q, expected %q", v, w)
-			}
+			require.Equalf(t, v.(string), w, "got %q, expected %q", v, w)
 		}
 	}
 }
@@ -59,16 +58,12 @@ func TestTermsTypes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ter, err := newTerms("test", tt.desc)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		v := ter.eval()
 		if v == nil && tt.weval == nil {
 			continue
 		}
-		if !reflect.DeepEqual(v, tt.weval) {
-			t.Fatalf("got %v, expected %v", v, tt.weval)
-		}
+		require.Truef(t, reflect.DeepEqual(v, tt.weval), "got %v, expected %v", v, tt.weval)
 	}
 }
 
@@ -100,15 +95,11 @@ func TestTermsCounter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ter, err := newTerms("test", tt.failpointTerm)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		for i := 0; i < tt.runAfterEnabling; i++ {
 			_ = ter.eval()
 		}
 
-		if ter.counter != tt.wantCount {
-			t.Errorf("counter is not properly incremented, got: %d, want: %d", ter.counter, tt.wantCount)
-		}
+		assert.Equalf(t, tt.wantCount, ter.counter, "counter is not properly incremented, got: %d, want: %d", ter.counter, tt.wantCount)
 	}
 }

@@ -25,6 +25,7 @@ linters:
     - revive
     - staticcheck
     - stylecheck
+    - testifylint
     - unconvert
     - unparam
     - unused
@@ -37,6 +38,9 @@ linters-settings: # please keep this alphabetized
   stylecheck:
     checks:
       - "ST1019"  # Importing the same package multiple times.
-
+  testifylint:
+    enable-all: true
+    formatter:
+      require-f-funcs: true
 run:
   timeout: 30m
