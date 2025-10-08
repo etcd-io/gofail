@@ -1,4 +1,13 @@
 ---
+formatters:
+  enable:
+    - gci
+  settings: # please keep this alphabetized
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(go.etcd.io)
 issues:
   exclude-files:
     - "^zz_generated.*"
