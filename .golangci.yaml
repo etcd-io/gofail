@@ -1,4 +1,6 @@
 ---
+version: 2
+
 issues:
   exclude-files:
     - "^zz_generated.*"

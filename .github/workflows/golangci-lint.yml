@@ -24,10 +24,10 @@ jobs:
         with:
           go-version: ${{ steps.goversion.outputs.goversion }}
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@4696ba8babb6127d732c3c6dde519db15edab9ea # v6.5.1
+        uses: golangci/golangci-lint-action@9fae48acfc02a90574d7c304a1758ef9895495fa # v7.0.1
         with:
-          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
-          version: v1.64.5
+          # Optional: version of golangci-lint to use in form of v2.6.1 or `latest` to use the latest version
+          version: v2.6.1
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
