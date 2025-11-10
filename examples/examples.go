@@ -12,19 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package examples provides example functions demonstrating gofail usage.
 package examples
 
+// ExampleFunc demonstrates a basic failpoint with a string return value.
 func ExampleFunc() string {
 	// gofail: var ExampleString string
 	// return ExampleString
 	return "example"
 }
 
+// ExampleOneLineFunc demonstrates a one-line failpoint.
 func ExampleOneLineFunc() string {
 	// gofail: var ExampleOneLine struct{}
 	return "abc"
 }
 
+// ExampleLabelsFunc demonstrates using failpoints with labeled statements.
 func ExampleLabelsFunc() (s string) {
 	i := 0
 	// gofail: myLabel:

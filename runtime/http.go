@@ -55,9 +55,9 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	key = key[1:]
 
-	switch {
+	switch r.Method {
 	// sets the failpoint
-	case r.Method == "PUT":
+	case "PUT":
 		v, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "failed ReadAll in PUT", http.StatusBadRequest)
@@ -82,7 +82,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 
 	// gets status of the failpoint
-	case r.Method == "GET":
+	case "GET":
 		if len(key) == 0 {
 			fps := list()
 			sort.Strings(fps)
@@ -113,7 +113,7 @@ func (*httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 	// deactivates a failpoint
-	case r.Method == "DELETE":
+	case "DELETE":
 		if err := Disable(key); err != nil {
 			http.Error(w, "failed to delete failpoint "+err.Error(), http.StatusBadRequest)
 			return
