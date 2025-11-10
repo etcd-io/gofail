@@ -1,48 +1,48 @@
 ---
-version: 2
+version: "2"
 
 issues:
-  exclude-files:
-    - "^zz_generated.*"
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    # exclude ineffassing linter for generated files for conversion
-    - path: conversion\.go
-      linters:
-        - ineffassign
   max-same-issues: 0
 
 linters:
-  disable-all: true
+  default: none
   enable: # please keep this alphabetized
   # Don't use soon to deprecated[1] linters that lead to false
   # https://github.com/golangci/golangci-lint/issues/1841
   # - deadcode
   # - structcheck
   # - varcheck
-    - gofmt
-    - goimports
     - ineffassign
     - nakedret
     - revive
     - staticcheck
-    - stylecheck
     - testifylint
     - unconvert
     - unparam
     - unused
+  exclusions:
+    paths:
+      - "^zz_generated.*"
+    # Excluding configuration per-path, per-linter, per-text and per-source
+    rules:
+      # exclude ineffassing linter for generated files for conversion
+      - path: conversion\.go
+        linters:
+          - ineffassign
+  settings: # please keep this alphabetized
+    staticcheck:
+      checks:
+        - "all"
+        - "-SA2002"  # TODO(fix) Called testing.T.FailNow or SkipNow in a goroutine, which isn't allowed
+    testifylint:
+      enable-all: true
+      formatter:
+        require-f-funcs: true
 
-linters-settings: # please keep this alphabetized
-  staticcheck:
-    checks:
-      - "all"
-      - "-SA2002"  # TODO(fix) Called testing.T.FailNow or SkipNow in a goroutine, which isn’t allowed
-  stylecheck:
-    checks:
-      - "ST1019"  # Importing the same package multiple times.
-  testifylint:
-    enable-all: true
-    formatter:
-      require-f-funcs: true
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
 run:
   timeout: 30m
