@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package runtime provides runtime support for gofail failpoint injection.
 package runtime
 
 import (
@@ -19,11 +20,13 @@ import (
 	"sync"
 )
 
+// Failpoint represents a runtime failpoint that can be enabled, disabled, and evaluated.
 type Failpoint struct {
 	t   *terms
 	mux sync.RWMutex
 }
 
+// NewFailpoint creates and registers a new failpoint with the given name.
 func NewFailpoint(name string) *Failpoint {
 	return register(name)
 }
@@ -54,6 +57,7 @@ func (fp *Failpoint) BadType(v interface{}, t string) {
 	fmt.Printf("failpoint: %q got value %v of type \"%T\" but expected type %q\n", fp.t.fpath, v, v, t)
 }
 
+// SetTerm sets the terms for this failpoint.
 func (fp *Failpoint) SetTerm(t *terms) {
 	fp.mux.Lock()
 	defer fp.mux.Unlock()
@@ -61,6 +65,7 @@ func (fp *Failpoint) SetTerm(t *terms) {
 	fp.t = t
 }
 
+// ClearTerm clears the terms for this failpoint, effectively disabling it.
 func (fp *Failpoint) ClearTerm() error {
 	fp.mux.Lock()
 	defer fp.mux.Unlock()
@@ -73,6 +78,7 @@ func (fp *Failpoint) ClearTerm() error {
 	return nil
 }
 
+// Status returns the failpoint's status description, execution counter, and error if disabled.
 func (fp *Failpoint) Status() (string, int, error) {
 	fp.mux.RLock()
 	defer fp.mux.RUnlock()

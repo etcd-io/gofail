@@ -20,6 +20,7 @@ import (
 	"strings"
 )
 
+// Failpoint represents a single failpoint in the source code.
 type Failpoint struct {
 	name    string
 	varType string
@@ -96,5 +97,8 @@ func (fp *Failpoint) flushMulti(dst io.Writer) error {
 	return err
 }
 
-func (fp *Failpoint) Name() string    { return fp.name }
+// Name returns the name of the failpoint.
+func (fp *Failpoint) Name() string { return fp.name }
+
+// Runtime returns the runtime variable name for the failpoint.
 func (fp *Failpoint) Runtime() string { return "__fp_" + fp.name }

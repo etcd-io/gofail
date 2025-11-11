@@ -22,7 +22,9 @@ import (
 )
 
 var (
-	ErrNoExist  = fmt.Errorf("failpoint: failpoint does not exist")
+	// ErrNoExist indicates that the requested failpoint does not exist.
+	ErrNoExist = fmt.Errorf("failpoint: failpoint does not exist")
+	// ErrDisabled indicates that the failpoint is currently disabled.
 	ErrDisabled = fmt.Errorf("failpoint: failpoint is disabled")
 
 	failpoints map[string]*Failpoint
@@ -120,6 +122,7 @@ func Status(failpath string) (string, int, error) {
 	return fp.Status()
 }
 
+// List returns a list of all registered failpoints.
 func List() []string {
 	failpointsMu.Lock()
 	defer failpointsMu.Unlock()

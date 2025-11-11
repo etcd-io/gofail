@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package code provides code generation functionality for gofail failpoints.
 package code
 
 import (
@@ -19,11 +20,13 @@ import (
 	"io"
 )
 
+// Binding represents a collection of failpoints for a specific package.
 type Binding struct {
 	pkg string
 	fps []*Failpoint
 }
 
+// NewBinding creates a new Binding for the given package and failpoints.
 func NewBinding(pkg string, fps []*Failpoint) *Binding {
 	return &Binding{pkg, fps}
 }
