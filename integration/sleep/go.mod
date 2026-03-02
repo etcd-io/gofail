@@ -1,9 +1,9 @@
 module go.etcd.io/gofail/integration/sleep
 
-go 1.24
+go 1.25
 
-toolchain go1.24.13
+toolchain go1.25.7
 
-require go.etcd.io/gofail v0.1.1-0.20240328162059-93c579a86c46
+require go.etcd.io/gofail v0.2.0
 
 replace go.etcd.io/gofail => ./../../
