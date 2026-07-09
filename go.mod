@@ -2,7 +2,7 @@ module go.etcd.io/gofail
 
 go 1.25
 
-toolchain go1.25.11
+toolchain go1.25.12
 
 require github.com/stretchr/testify v1.11.1
 
