@@ -8,6 +8,7 @@ run-all-integration-tests:
 	# we compile and execute all integration tests
 	# add new integration test targets here
 	$(MAKE) run-integration-test-sleep 
+	$(MAKE) run-integration-test-server
 
 	# we disable all failpoints
 	$(MAKE) gofail-disable
@@ -19,10 +20,17 @@ clean-all-integration-tests: clean-integration-test-sleep gofail-disable
 .PHONY: gofail-enable
 gofail-enable: build-gofail
 	$(GOFAIL_BINARY) enable ./integration/sleep/failpoints
+	$(GOFAIL_BINARY) enable ./integration/server/failpoints
 
 .PHONY: gofail-disable
 gofail-disable: build-gofail
-	${GOFAIL_BINARY} disable ./integration/sleep/failpoints
+	$(GOFAIL_BINARY) disable ./integration/sleep/failpoints
+	$(GOFAIL_BINARY) disable ./integration/server/failpoints
+
+# run integration test - server
+.PHONY: run-integration-test-server
+run-integration-test-server:
+	cd ./integration/server && go test -v .
 
 # run integration test - sleep
 .PHONY: run-integration-test-sleep
