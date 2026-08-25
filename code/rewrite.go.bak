@@ -112,11 +112,7 @@ func ToComments(wdst io.Writer, rsrc io.Reader) ([]*Failpoint, error) {
 
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
-			parts := strings.Split(l, ".(")
-			if len(parts) < 2 {
-				return fps, fmt.Errorf("failpoint %q header is missing its type assertion, the generated code may have been reformatted: %q", n, lTrim)
-			}
-			t := strings.Split(parts[1], ")")[0]
+			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
 			dst.WriteString(ws + pfx + " var " + n + " " + t + "\n")
 			if !strings.Contains(l, "; goto __nomock") {
 				// not single liner
