@@ -47,6 +47,50 @@ func TestSameFailpointCreateTwice(t *testing.T) {
 	assert.Panics(t, func() { NewFailpoint("failpoint") })
 }
 
+func TestFailpointValues(t *testing.T) {
+	defer clearGlobalVars()
+	fp := NewFailpoint("value")
+	tests := []struct {
+		desc string
+		want interface{}
+	}{
+		{`return("C:\\logs")`, `C:\logs`},
+		{`return("hello\nworld")`, "hello\nworld"},
+		{`return("a\"b")`, `a"b`},
+		{`return("\u4e2d\u6587")`, "中文"},
+		{`return("a)b")`, "a)b"},
+		{"return(`C:\\logs`)", `C:\logs`},
+		{"return(`a)b`)", "a)b"},
+		{`return(001)`, 1},
+		{`return(-2)`, -2},
+		{`return(false)`, false},
+		{`return(TRUE)`, true},
+		{`return(tRuE)`, true},
+		{`return(FALSE)`, false},
+		{`1*return("a\tb")->return("next")`, "a\tb"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			require.NoError(t, Enable("value", tt.desc))
+			got, err := fp.Acquire()
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestFailpointIncompleteValues(t *testing.T) {
+	defer clearGlobalVars()
+	NewFailpoint("value")
+	for _, desc := range []string{`return("abc"`, `return(1`, `return(true`, `return("a\")`, "return(`abc`", "return(`abc)"} {
+		t.Run(desc, func(t *testing.T) {
+			var err error
+			require.NotPanics(t, func() { err = Enable("value", desc) })
+			require.ErrorIs(t, err, ErrBadParse)
+		})
+	}
+}
+
 // clearGlobalVars will unset runtime package global variables
 // note: doesn't work if tests are run in parallel
 func clearGlobalVars() {
