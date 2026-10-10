@@ -21,6 +21,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestEnableRequiresAction(t *testing.T) {
+	defer clearGlobalVars()
+
+	for _, desc := range []string{
+		`1*`,
+		`100.0%`,
+		`1*(123)`,
+		`(123)`,
+		`1*->return(1)`,
+		`0*return(1)->1*`,
+	} {
+		t.Run(desc, func(t *testing.T) {
+			fp := NewFailpoint(t.Name())
+			require.NoError(t, Enable(t.Name(), `return(1)`))
+
+			require.ErrorIs(t, Enable(t.Name(), desc), ErrBadParse)
+
+			v, err := fp.Acquire()
+			require.NoError(t, err)
+			assert.Equal(t, 1, v)
+		})
+	}
+}
+
 func TestFailpointCreateAndAcquire(t *testing.T) {
 	name := "failpoint"
 	envTerms = map[string]string{name: "return(1)"}
