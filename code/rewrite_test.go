@@ -124,3 +124,34 @@ func TestToComment(t *testing.T) {
 		require.Equalf(t, len(fps), ex.wfps, "%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
 	}
 }
+
+// gofmt splits the single-line header the generator writes across several
+// lines, which leaves the type assertion on a later line than the "if". The
+// header match still fires on the "if" line, so the type lookup has to cope
+// with not finding one.
+func TestToCommentReformattedHeader(t *testing.T) {
+	reformatted := `package mypkg
+
+import "fmt"
+
+func Serve() {
+	if vSlowDown, __fpErr := __fp_SlowDown.Acquire(); __fpErr == nil {
+		_, __fpTypeOK := vSlowDown.(struct{})
+		if !__fpTypeOK {
+			goto __badTypeSlowDown
+		}
+		goto __nomockSlowDown
+	__badTypeSlowDown:
+		__fp_SlowDown.BadType(vSlowDown, "struct{}")
+	__nomockSlowDown:
+	}
+	fmt.Println("serving")
+}
+`
+
+	dst := bytes.NewBuffer(make([]byte, 0, 1024))
+	_, err := ToComments(dst, strings.NewReader(reformatted))
+
+	require.Error(t, err, "expected an error rather than a panic")
+	require.Contains(t, err.Error(), "missing its type assertion")
+}

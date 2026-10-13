@@ -112,7 +112,15 @@ func ToComments(wdst io.Writer, rsrc io.Reader) ([]*Failpoint, error) {
 
 			ws = strings.Split(l, "i")[0]
 			n := strings.Split(strings.Split(l, "__fp_")[1], ".")[0]
-			t := strings.Split(strings.Split(l, ".(")[1], ")")[0]
+			// The generated header is written as a single line, but gofmt splits
+			// it across several, which leaves the type assertion on a later line
+			// than the one matched above.
+			typeParts := strings.SplitN(l, ".(", 2)
+			if len(typeParts) < 2 {
+				return fps, fmt.Errorf("gofail: failpoint %q header is missing its type assertion, "+
+					"the generated code may have been reformatted: %q", n, strings.TrimRight(l, "\n"))
+			}
+			t := strings.Split(typeParts[1], ")")[0]
 			dst.WriteString(ws + pfx + " var " + n + " " + t + "\n")
 			if !strings.Contains(l, "; goto __nomock") {
 				// not single liner
