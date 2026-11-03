@@ -19,6 +19,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -257,23 +258,35 @@ func parseVal(desc string) (string, interface{}) {
 	if desc[1] == ')' {
 		return "()", struct{}{}
 	}
-	// return("s") => string
-	s := ""
-	n, err := fmt.Sscanf(desc[1:], "%q", &s)
-	if n == 1 && err == nil {
-		return desc[:len(s)+4], s
+	// Use the source token's length, which can differ from its decoded value.
+	if desc[1] == '"' || desc[1] == '`' {
+		quoted, err := strconv.QuotedPrefix(desc[1:])
+		if err != nil {
+			return "", nil
+		}
+		end := len(quoted) + 1
+		if end >= len(desc) || desc[end] != ')' {
+			return "", nil
+		}
+		value, err := strconv.Unquote(quoted)
+		if err != nil {
+			return "", nil
+		}
+		return desc[:end+1], value
 	}
-	// return(1) => int
-	v := 0
-	n, err = fmt.Sscanf(desc[1:], "%d", &v)
-	if n == 1 && err == nil {
-		return desc[:len(fmt.Sprintf("%d", v))+2], v
+	end := strings.IndexByte(desc, ')')
+	if end == -1 {
+		return "", nil
 	}
-	// return(true) => bool
-	b := false
-	n, err = fmt.Sscanf(desc[1:], "%t", &b)
-	if n == 1 && err == nil {
-		return desc[:len(fmt.Sprintf("%t", b))+2], b
+	value := desc[1:end]
+	if v, err := strconv.Atoi(value); err == nil {
+		return desc[:end+1], v
+	}
+	switch strings.ToLower(value) {
+	case "true":
+		return desc[:end+1], true
+	case "false":
+		return desc[:end+1], false
 	}
 	// unknown type; malformed input?
 	return "", nil
