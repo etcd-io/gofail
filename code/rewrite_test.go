@@ -124,3 +124,16 @@ func TestToComment(t *testing.T) {
 		require.Equalf(t, len(fps), ex.wfps, "%d: got %d failpoints but expected %d", i, len(fps), ex.wfps)
 	}
 }
+
+func TestToCommentsReformattedHeader(t *testing.T) {
+	// gofmt splits the header across lines:
+	// if vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil {
+	//   Test, __fpTypeOK := vTest.(int); ...
+	// The second line contains ".(" but not the first, so strings.Split(l, ".(")[1] panics.
+	reformatted := "if vTest, __fpErr := __fp_Test.Acquire(); __fpErr == nil {\n\tTest, __fpTypeOK := vTest.(int)\n\tfmt.Println(Test)\n}\n"
+	dst := bytes.NewBuffer(nil)
+	src := strings.NewReader(reformatted)
+	_, err := ToComments(dst, src)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "type assertion")
+}
