@@ -67,32 +67,43 @@ GOFAIL_FAILPOINTS='failpoint1=return("hello");failpoint2=sleep(10)' ./cmd
 
 ### HTTP endpoint
 
-First, enable the HTTP server from the command line,
+First, enable the HTTP server from the command line:
 
 ```sh
 GOFAIL_HTTP="127.0.0.1:1234" ./cmd
 ```
 
-
-Activate a failpoint with curl,
+Activate a single failpoint with curl:
 
 ```sh
 $ curl http://127.0.0.1:1234/SomeFuncString -XPUT -d'return("hello")'
 ```
 
-List the failpoints,
+Activate multiple failpoints atomically with the special `/failpoints` endpoint. The payload is the same as for `GOFAIL_FAILPOINTS` above:
 
 ```sh
-$ curl http://127.0.0.1:1234/SomeFuncString=return("hello")
+$ curl http://127.0.0.1:1234/failpoints -XPUT -d'failpoint1=return("hello");failpoint2=sleep(10)'
 ```
 
-Retrieve the execution count of a failpoint,
+List all failpoint configurations:
+
+```sh
+$ curl http://127.0.0.1:1234/
+```
+
+List a single failpoint configuration:
+
+```sh
+$ curl http://127.0.0.1:1234/SomeFuncString
+```
+
+Retrieve the execution count of a failpoint:
 
 ```sh
 $curl http://127.0.0.1:1234/SomeFuncString/count -XGET
 ```
 
-Deactivate a failpoint,
+Deactivate a failpoint:
 
 ```sh
 $ curl http://127.0.0.1:1234/SomeFuncString -XDELETE
