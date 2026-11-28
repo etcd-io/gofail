@@ -103,3 +103,50 @@ func TestTermsCounter(t *testing.T) {
 		assert.Equalf(t, tt.wantCount, ter.counter, "counter is not properly incremented, got: %d, want: %d", ter.counter, tt.wantCount)
 	}
 }
+
+func TestTermsQuotedValue(t *testing.T) {
+	tests := []struct {
+		desc  string
+		weval interface{}
+	}{
+		{`return("abc")`, "abc"},
+		{`return("a\"b")`, `a"b`},
+		{`return("a\nb")`, "a\nb"},
+		{`return("a\\b")`, `a\b`},
+		{`return("tab\there")`, "tab\there"},
+		{`return("")`, ""},
+	}
+	for _, tt := range tests {
+		ter, err := newTerms("test", tt.desc)
+		require.NoErrorf(t, err, "could not parse %s", tt.desc)
+		require.Equalf(t, tt.desc, ter.String(), "term description round trip for %s", tt.desc)
+		require.Equalf(t, tt.weval, ter.eval(), "value for %s", tt.desc)
+	}
+}
+
+func TestTermsQuotedValueInChain(t *testing.T) {
+	ter, err := newTerms("test", `1*return("a\"b")->return("x")`)
+	require.NoError(t, err)
+	assert.Equal(t, `a"b`, ter.eval())
+	assert.Equal(t, "x", ter.eval())
+}
+
+func TestTermsUnterminatedValueIsRejected(t *testing.T) {
+	for _, desc := range []string{
+		`return("abc"`,
+		`return("abc`,
+		`return("`,
+		`return(1`,
+		`return(true`,
+	} {
+		_, err := newTerms("test", desc)
+		assert.Errorf(t, err, "expected %s to be rejected, not to panic", desc)
+	}
+}
+
+func TestTermsIntKeepsLeadingZeroes(t *testing.T) {
+	ter, err := newTerms("test", `return(0012)`)
+	require.NoError(t, err)
+	assert.Equal(t, `return(0012)`, ter.String())
+	assert.Equal(t, 12, ter.eval())
+}

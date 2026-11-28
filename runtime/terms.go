@@ -19,6 +19,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -258,22 +259,34 @@ func parseVal(desc string) (string, interface{}) {
 		return "()", struct{}{}
 	}
 	// return("s") => string
-	s := ""
-	n, err := fmt.Sscanf(desc[1:], "%q", &s)
-	if n == 1 && err == nil {
-		return desc[:len(s)+4], s
+	//
+	// Measure the quoted literal as it appears in desc rather than the
+	// decoded string: any escape sequence makes the two lengths differ, which
+	// both mis-reports how much of desc was consumed and can index past its
+	// end when the closing quote is missing.
+	if quoted, qerr := strconv.QuotedPrefix(desc[1:]); qerr == nil {
+		end := len(quoted) + 1
+		if end < len(desc) && desc[end] == ')' {
+			if s, uerr := strconv.Unquote(quoted); uerr == nil {
+				return desc[:end+1], s
+			}
+		}
 	}
+	// An int or a bool value runs to the closing paren. Slicing by the length
+	// of the reformatted value instead would drop leading zeroes from desc and
+	// run past its end when the paren is missing.
+	end := strings.IndexByte(desc, ')')
+	if end < 0 {
+		return "", nil
+	}
+	inner := desc[1:end]
 	// return(1) => int
-	v := 0
-	n, err = fmt.Sscanf(desc[1:], "%d", &v)
-	if n == 1 && err == nil {
-		return desc[:len(fmt.Sprintf("%d", v))+2], v
+	if v, verr := strconv.Atoi(inner); verr == nil {
+		return desc[:end+1], v
 	}
 	// return(true) => bool
-	b := false
-	n, err = fmt.Sscanf(desc[1:], "%t", &b)
-	if n == 1 && err == nil {
-		return desc[:len(fmt.Sprintf("%t", b))+2], b
+	if b, berr := strconv.ParseBool(inner); berr == nil {
+		return desc[:end+1], b
 	}
 	// unknown type; malformed input?
 	return "", nil
